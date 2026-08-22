@@ -54,7 +54,7 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
     lastBid
       ? `🔥 Último lance: ${lastBid.brandName} investiu +${formatCurrency(lastBid.amount, currency)} (${lastBid.timeAgo}).`
       : "💡 A partir de $1.00 sua marca já ganha visibilidade instantânea.",
-    "🛡️ Não seja diluído! Garanta sua dominância visual no MySpace.",
+    "🛡️ Não seja diluído! Garanta sua dominância visual no BidBento.lol.",
   ];
 
   useEffect(() => {

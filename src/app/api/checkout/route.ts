@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
             price_data: {
               currency: "usd",
               product_data: {
-                name: `Espaço no MySpace - ${name}`,
+                name: `Espaço no BidBento.lol - ${name}`,
                 description: `Ocupe seu espaço na tela para ${domain}`,
                 images: finalLogo ? [finalLogo] : undefined,
               },

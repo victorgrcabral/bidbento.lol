@@ -196,7 +196,7 @@ export default function CheckoutPage() {
             className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-zinc-300 hover:text-white bg-zinc-900 border border-white/10 px-4 py-2 rounded-full transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span>Voltar ao MySpace</span>
+            <span>Voltar ao BidBento.lol</span>
           </Link>
 
           <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5">

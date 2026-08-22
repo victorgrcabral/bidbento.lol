@@ -1,6 +1,6 @@
-# 🚀 MySpace — Visual Screen Domination Platform
+# 🍱 BidBento.lol — Visual Screen Domination Platform
 
-> Compre espaço na tela para sua marca, software ou SaaS em tempo real. Inspirado na mecânica viral do `outbid.lol` e potencializado com **Squarified Treemap Layout**, diluição natural e alta conversão.
+> Compre espaço na tela para sua marca, software ou SaaS em tempo real no **bidbento.lol**. Inspirado na mecânica viral do `outbid.lol` e potencializado com **Squarified Treemap Layout**, diluição natural e alta conversão.
 
 ---
 

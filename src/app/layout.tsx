@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MySpace - Dispute a Dominância Visual da Tela",
+  title: "BidBento.lol - Dispute a Dominância Visual da Tela",
   description:
-    "Compre espaço e conquiste a tela em tempo real para sua marca, software ou SaaS. Inspirado na dinâmica viral do outbid.lol.",
+    "Compre espaço e conquiste a tela em tempo real para sua marca, software ou SaaS no bidbento.lol. Inspirado na dinâmica viral do outbid.lol.",
   icons: {
     icon: "/favicon.ico",
   },

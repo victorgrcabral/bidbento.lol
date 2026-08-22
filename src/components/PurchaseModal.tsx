@@ -290,7 +290,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
               ~{calculation.projectedPercentage}%
             </span>
             <span className="text-xs text-zinc-300">
-              de toda a área útil na tela do MySpace!
+              de toda a área útil na tela do BidBento.lol!
             </span>
           </div>
 

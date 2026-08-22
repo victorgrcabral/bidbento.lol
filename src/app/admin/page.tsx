@@ -73,7 +73,7 @@ export default function AdminPage() {
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold">Painel de Moderação - MySpace</h1>
+              <h1 className="text-xl font-bold">Painel de Moderação - BidBento.lol</h1>
               <p className="text-xs text-zinc-400">Gerenciamento seguro de marcas e conteúdo</p>
             </div>
           </div>

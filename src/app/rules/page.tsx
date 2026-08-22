@@ -24,7 +24,7 @@ export default function RulesPage() {
             className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-zinc-300 hover:text-white bg-zinc-900 border border-white/10 px-4 py-2 rounded-full transition-all hover:border-violet-500/50"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span>Voltar ao MySpace</span>
+            <span>Voltar ao BidBento.lol</span>
           </Link>
 
           <span className="text-xs font-mono text-violet-400 bg-violet-950/60 border border-violet-500/30 px-3 py-1 rounded-full">
@@ -38,10 +38,10 @@ export default function RulesPage() {
             <ShieldCheck className="w-8 h-8" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3 bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-            Regras de Funcionamento do MySpace
+            Regras de Funcionamento do BidBento.lol
           </h1>
           <p className="text-sm sm:text-base text-zinc-400 max-w-2xl leading-relaxed">
-            O MySpace é um experimento público de visualização e monetização de espaço de tela. Abaixo estão as regras oficiais e diretrizes de convivência e lances.
+            O BidBento.lol é um experimento público de visualização e monetização de espaço de tela. Abaixo estão as regras oficiais e diretrizes de convivência e lances.
           </p>
         </div>
 

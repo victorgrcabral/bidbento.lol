@@ -42,7 +42,7 @@ export const LeaderboardDrawer: React.FC<LeaderboardDrawerProps> = ({
             <div>
               <h2 className="font-bold text-lg text-white">Ranking de Dominância</h2>
               <p className="text-xs text-zinc-400">
-                Todas as {brands.length} marcas disputando o MySpace
+                Todas as {brands.length} marcas disputando o BidBento.lol
               </p>
             </div>
           </div>

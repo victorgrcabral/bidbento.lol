@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
             price_data: {
               currency: "usd",
               product_data: {
-                name: `Boost no MySpace - ${brand.name}`,
+                name: `Boost no BidBento.lol - ${brand.name}`,
                 description: `Aumentar dominância da marca ${brand.domain}`,
                 images: brand.logoUrl ? [brand.logoUrl] : undefined,
               },

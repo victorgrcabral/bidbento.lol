@@ -64,7 +64,7 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">A tela está vazia</h2>
         <p className="text-sm text-zinc-400 max-w-md mb-6">
-          Seja a primeira marca a conquistar 100% de dominância no MySpace por apenas $1.00!
+          Seja a primeira marca a conquistar 100% de dominância no BidBento.lol por apenas $1.00!
         </p>
         <button
           onClick={onOpenPurchase}
