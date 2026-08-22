@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js build
+/.next/
+/out/
+/build
+
+# environment & database
+.env
+.env*.local
+dev.db
+dev.db-journal
+
+# temporary logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# system files
+.DS_Store
+Thumbs.db
+
+# uploads (keep folder structure)
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# vercel & cloudflare
+.vercel
+.cloudflare

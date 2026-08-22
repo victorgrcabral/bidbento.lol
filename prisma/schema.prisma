@@ -1,0 +1,57 @@
+// Prisma Schema for MySpace
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Brand {
+  id            String       @id @default(cuid())
+  name          String
+  domain        String       @unique
+  websiteUrl    String
+  logoUrl       String?
+  tagline       String?
+  category      String       @default("SaaS")
+  color         String?      @default("#7c3aed")
+  totalAmount   Float        @default(0.0)
+  clicksCount   Int          @default(0)
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  lastPaymentAt DateTime     @default(now())
+
+  payments      Payment[]
+  clicks        ClickEvent[]
+
+  @@index([totalAmount])
+  @@index([isActive])
+  @@index([category])
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  brandId         String
+  brand           Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  amount          Float
+  currency        String   @default("usd")
+  stripeSessionId String?  @unique
+  status          String   @default("completed")
+  createdAt       DateTime @default(now())
+
+  @@index([brandId])
+}
+
+model ClickEvent {
+  id        String   @id @default(cuid())
+  brandId   String
+  brand     Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  referrer  String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([brandId])
+}
