@@ -7,6 +7,7 @@ import { CurrencyCode, formatCurrency } from "@/lib/currency";
 import { Language, getTranslation } from "@/lib/i18n";
 import { CurrencyToggle } from "./CurrencyToggle";
 import { LanguageToggle } from "./LanguageToggle";
+import { ThemeToggle, Theme } from "./ThemeToggle";
 import {
   Zap,
   Trophy,
@@ -30,6 +31,8 @@ interface BottomConversionBarProps {
   onCurrencyChange: (code: CurrencyCode) => void;
   language: Language;
   onLanguageChange: (lang: Language) => void;
+  theme?: Theme;
+  onThemeChange?: (theme: Theme) => void;
   onOpenPurchase: () => void;
   onOpenLeaderboard: () => void;
 }
@@ -47,6 +50,8 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
   onCurrencyChange,
   language = "en",
   onLanguageChange,
+  theme = "dark",
+  onThemeChange,
   onOpenPurchase,
   onOpenLeaderboard,
 }) => {
@@ -73,7 +78,7 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 p-2 sm:p-4 pointer-events-none flex justify-center">
-      <div className="w-full max-w-6xl bg-zinc-950/90 backdrop-blur-2xl border border-white/15 rounded-2xl sm:rounded-full p-2 sm:px-5 sm:py-3 shadow-2xl shadow-black/90 pointer-events-auto flex flex-col md:flex-row items-center justify-between gap-3 transition-all duration-300">
+      <div className="w-full max-w-6xl bg-zinc-950/90 dark:bg-zinc-950/90 backdrop-blur-2xl border border-white/15 dark:border-white/15 rounded-2xl sm:rounded-full p-2 sm:px-5 sm:py-3 shadow-2xl shadow-black/90 pointer-events-auto flex flex-col md:flex-row items-center justify-between gap-3 transition-all duration-300">
         {/* Left: Dynamic Conversion Copy */}
         <div className="flex items-center gap-3 w-full md:w-auto overflow-hidden">
           <div className="hidden sm:flex w-9 h-9 rounded-full bg-violet-600/20 border border-violet-500/30 items-center justify-center shrink-0">
@@ -96,8 +101,8 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
           </div>
         </div>
 
-        {/* Right: Actions, Pagination, Currency, Language, Rules and Main CTA */}
-        <div className="flex items-center justify-between md:justify-end gap-2 sm:gap-3 w-full md:w-auto shrink-0 flex-wrap sm:flex-nowrap">
+        {/* Right: Actions, Pagination, Currency, Language, Theme, Rules and Main CTA */}
+        <div className="flex items-center justify-between md:justify-end gap-2 sm:gap-2.5 w-full md:w-auto shrink-0 flex-wrap sm:flex-nowrap">
           {/* Pagination Controls */}
           {totalPages > 1 && (
             <div className="flex items-center gap-1 bg-zinc-900/90 border border-white/10 p-1 rounded-full text-xs text-zinc-300">
@@ -121,6 +126,14 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
+          )}
+
+          {/* Theme Toggle (Dark/Light) */}
+          {onThemeChange && (
+            <ThemeToggle
+              theme={theme}
+              onThemeChange={onThemeChange}
+            />
           )}
 
           {/* Language Toggle */}

@@ -3,17 +3,19 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import { BrandSpace } from "@/types";
 import { CurrencyCode } from "@/lib/currency";
-import { Language, getTranslation } from "@/lib/i18n";
+import { Language } from "@/lib/i18n";
 import { computeSquarifiedTreemap } from "@/lib/treemap";
 import { BrandBlock } from "./BrandBlock";
 import { BrandHoverCard } from "./BrandHoverCard";
+import { EmptyCategoryPlaceholder } from "./EmptyCategoryPlaceholder";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface ScreenTreemapProps {
   brands: BrandSpace[];
   currency: CurrencyCode;
   language?: Language;
+  categoryName?: string;
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
@@ -25,13 +27,13 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
   brands,
   currency,
   language = "en",
+  categoryName = "all",
   currentPage = 1,
   totalPages = 1,
   onPageChange,
   onBoost,
   onOpenPurchase,
 }) => {
-  const t = getTranslation(language);
   const [selectedMobileBrand, setSelectedMobileBrand] = useState<BrandSpace | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -109,21 +111,11 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
 
   if (!brands || brands.length === 0) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 rounded-3xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center mb-5 text-violet-400">
-          <Sparkles className="w-10 h-10 animate-pulse" />
-        </div>
-        <h2 className="text-2xl font-bold text-white mb-2">{t.emptyTitle}</h2>
-        <p className="text-sm text-zinc-400 max-w-md mb-6">
-          {t.emptyDesc}
-        </p>
-        <button
-          onClick={onOpenPurchase}
-          className="bg-violet-600 hover:bg-violet-500 text-white font-bold text-sm px-6 py-3 rounded-full shadow-lg shadow-violet-600/30 transition-transform active:scale-95"
-        >
-          {t.claimNow}
-        </button>
-      </div>
+      <EmptyCategoryPlaceholder
+        categoryName={categoryName}
+        language={language}
+        onOpenPurchase={onOpenPurchase}
+      />
     );
   }
 

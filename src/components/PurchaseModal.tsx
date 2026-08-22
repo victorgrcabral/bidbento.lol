@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useEffect } from "react";
 import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency } from "@/lib/currency";
 import { normalizeDomain, getFaviconUrl } from "@/lib/utils";
@@ -28,6 +28,7 @@ interface PurchaseModalProps {
   existingBrands: BrandSpace[];
   currency: CurrencyCode;
   language?: Language;
+  initialCategory?: string;
   onSuccess: () => void;
 }
 
@@ -51,6 +52,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   existingBrands,
   currency,
   language = "en",
+  initialCategory = "SaaS",
   onSuccess,
 }) => {
   const t = getTranslation(language);
@@ -74,6 +76,12 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   const [uploadedFilePreview, setUploadedFilePreview] = useState<string | null>(null);
   const [tagline, setTagline] = useState("");
   const [category, setCategory] = useState("SaaS");
+
+  useEffect(() => {
+    if (initialCategory && initialCategory !== "all") {
+      setCategory(initialCategory);
+    }
+  }, [initialCategory, isOpen]);
   const [color, setColor] = useState("#7c3aed");
   const [isCustomColor, setIsCustomColor] = useState(false);
   const [customColorInput, setCustomColorInput] = useState("");

@@ -11,6 +11,7 @@ import { PurchaseModal } from "@/components/PurchaseModal";
 import { BoostModal } from "@/components/BoostModal";
 import { LeaderboardDrawer } from "@/components/LeaderboardDrawer";
 import { BidBentoLogo } from "@/components/BidBentoLogo";
+import { Theme } from "@/components/ThemeToggle";
 import { CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,6 +20,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [language, setLanguage] = useState<Language>("en");
+  const [theme, setTheme] = useState<Theme>("dark");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("all");
   
@@ -30,9 +32,19 @@ export default function HomePage() {
 
   const t = getTranslation(language);
 
-  // Auto-detect language and currency by browser locale / localStorage
+  // Auto-detect language, theme, and currency
   useEffect(() => {
     try {
+      // 1. Theme (default dark)
+      const savedTheme = localStorage.getItem("bidbento_theme") as Theme;
+      if (savedTheme === "light" || savedTheme === "dark") {
+        setTheme(savedTheme);
+        document.documentElement.classList.toggle("dark", savedTheme === "dark");
+      } else {
+        document.documentElement.classList.add("dark");
+      }
+
+      // 2. Language & Currency
       const savedLang = localStorage.getItem("bidbento_lang") as Language;
       if (savedLang && (savedLang === "en" || savedLang === "es" || savedLang === "pt")) {
         setLanguage(savedLang);
@@ -58,6 +70,14 @@ export default function HomePage() {
     setLanguage(lang);
     try {
       localStorage.setItem("bidbento_lang", lang);
+    } catch {}
+  };
+
+  const handleThemeChange = (nextTheme: Theme) => {
+    setTheme(nextTheme);
+    try {
+      localStorage.setItem("bidbento_theme", nextTheme);
+      document.documentElement.classList.toggle("dark", nextTheme === "dark");
     } catch {}
   };
 
@@ -114,7 +134,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-black flex flex-col justify-between select-none">
+    <main className="relative w-screen h-screen overflow-hidden bg-[#050508] dark:bg-[#050508] flex flex-col justify-between select-none">
       {/* Top Ambient Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/10 blur-3xl pointer-events-none rounded-full" />
 
@@ -152,6 +172,7 @@ export default function HomePage() {
             brands={data?.brands || []}
             currency={currency}
             language={language}
+            categoryName={selectedCategory}
             currentPage={data?.page || 1}
             totalPages={data?.totalPages || 1}
             onPageChange={(p) => setCurrentPage(p)}
@@ -161,7 +182,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Bottom Conversion Bar with Pagination & Language Switcher */}
+      {/* Bottom Conversion Bar with Pagination, Language Switcher & Dark/Light Theme */}
       <BottomConversionBar
         brands={data?.brands || []}
         totalAmount={data?.totalAmount || 0}
@@ -175,6 +196,8 @@ export default function HomePage() {
         onCurrencyChange={(c) => setCurrency(c)}
         language={language}
         onLanguageChange={handleLanguageChange}
+        theme={theme}
+        onThemeChange={handleThemeChange}
         onOpenPurchase={() => setIsPurchaseOpen(true)}
         onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
       />
@@ -187,6 +210,7 @@ export default function HomePage() {
         existingBrands={data?.brands || []}
         currency={currency}
         language={language}
+        initialCategory={selectedCategory}
         onSuccess={() => {
           fetchSpaces();
           setSuccessToast(t.spacePurchasedToast(""));
