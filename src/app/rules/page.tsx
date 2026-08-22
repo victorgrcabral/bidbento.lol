@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Language, getTranslation } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { BidBentoLogo } from "@/components/BidBentoLogo";
 
 export default function RulesPage() {
   const [language, setLanguage] = useState<Language>("en");
@@ -69,8 +70,8 @@ export default function RulesPage() {
 
         {/* Header Hero */}
         <div className="mb-10 text-center sm:text-left">
-          <div className="inline-flex p-3 rounded-2xl bg-violet-600/20 text-violet-400 border border-violet-500/30 mb-4">
-            <ShieldCheck className="w-8 h-8" />
+          <div className="mb-5">
+            <BidBentoLogo withBadge={true} size="md" />
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3 bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
             {t.rulesHeroTitle}

@@ -61,10 +61,14 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
 
   const brandColor = brand.color || "#7c3aed";
 
-  // Dynamic popover position:
-  const isTallBlock = rect.h > 35;
-  const isBottomHalf = rect.y > 50;
-  const isRightSide = rect.x > 50;
+  // Dynamic Viewport-Safe Popover Position:
+  const isTallBlock = rect.h > 50;
+  // If the block is not at the extreme top (rect.y > 18 or bottom > 40), ALWAYS open UPWARDS
+  const openUpwards = !isTallBlock && (rect.y > 18 || (rect.y + rect.h) > 40);
+
+  // Horizontal anchoring to keep card fully on screen
+  const isRightAnchored = rect.x > 60 || (rect.x + rect.w) > 75;
+  const isLeftAnchored = rect.x < 25;
 
   return (
     <div
@@ -74,7 +78,7 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
         top: `${rect.y}%`,
         width: `${rect.w}%`,
         height: `${rect.h}%`,
-        zIndex: isHovered ? 50 : 1,
+        zIndex: isHovered ? 75 : 1,
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -180,22 +184,24 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
         )}
       </motion.div>
 
-      {/* Desktop Rich Hover Popover Card */}
+      {/* Desktop Rich Hover Popover Card with Viewport-Safe Positioning */}
       <AnimatePresence>
         {isHovered && !isMobile && (
           <div
-            className={`absolute z-[60] pointer-events-auto ${
+            className={`absolute z-[80] pointer-events-auto ${
               isTallBlock
                 ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                : isBottomHalf
+                : openUpwards
                 ? "bottom-full mb-3"
                 : "top-full mt-3"
             } ${
               isTallBlock
                 ? ""
-                : isRightSide
+                : isRightAnchored
                 ? "right-0"
-                : "left-0"
+                : isLeftAnchored
+                ? "left-0"
+                : "left-1/2 -translate-x-1/2"
             }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}

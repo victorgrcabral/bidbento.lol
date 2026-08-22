@@ -10,6 +10,7 @@ import { CategoryFilter } from "@/components/CategoryFilter";
 import { PurchaseModal } from "@/components/PurchaseModal";
 import { BoostModal } from "@/components/BoostModal";
 import { LeaderboardDrawer } from "@/components/LeaderboardDrawer";
+import { BidBentoLogo } from "@/components/BidBentoLogo";
 import { CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -117,6 +118,18 @@ export default function HomePage() {
       {/* Top Ambient Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/10 blur-3xl pointer-events-none rounded-full" />
 
+      {/* Top Left Logo Brand */}
+      <div className="absolute top-3 left-3 z-40 hidden sm:block">
+        <BidBentoLogo
+          withBadge={true}
+          size="sm"
+          onClick={() => {
+            setSelectedCategory("all");
+            setCurrentPage(1);
+          }}
+        />
+      </div>
+
       {/* Top Category Filter Chips */}
       <CategoryFilter
         selectedCategory={selectedCategory}
@@ -125,7 +138,7 @@ export default function HomePage() {
         language={language}
       />
 
-      {/* Main Screen Treemap Area */}
+      {/* Main Screen Treemap Area with Vertical Swipe/Scroll Page Navigation */}
       <div className="relative w-full flex-1 pt-14 pb-24 md:pb-20 overflow-hidden">
         {isLoading && !data ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
@@ -139,6 +152,9 @@ export default function HomePage() {
             brands={data?.brands || []}
             currency={currency}
             language={language}
+            currentPage={data?.page || 1}
+            totalPages={data?.totalPages || 1}
+            onPageChange={(p) => setCurrentPage(p)}
             onBoost={handleBoost}
             onOpenPurchase={() => setIsPurchaseOpen(true)}
           />

@@ -35,10 +35,10 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 8 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className={`w-80 max-w-[90vw] bg-zinc-950/98 backdrop-blur-2xl border border-white/20 rounded-2xl p-5 shadow-2xl shadow-black text-white pointer-events-auto select-text ${
+      className={`w-80 max-w-[90vw] max-h-[min(82vh,420px)] overflow-y-auto no-scrollbar bg-zinc-950/98 backdrop-blur-2xl border border-white/20 rounded-2xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.95)] text-white pointer-events-auto select-text ${
         isMobileModal
-          ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60]"
-          : "z-[55]"
+          ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[90]"
+          : "z-[80]"
       }`}
       onClick={(e) => e.stopPropagation()}
     >

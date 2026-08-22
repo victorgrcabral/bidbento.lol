@@ -36,3 +36,16 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* Hide Turbopack / Next.js dev overlays, badges, toasts, and icons */
+nextjs-portal,
+[data-nextjs-toast],
+[data-nextjs-dialog-overlay],
+[data-nextjs-dev-indicator],
+[data-nextjs-build-indicator],
+div[data-nextjs-router-toast],
+div[data-nextjs-dev-indicator] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

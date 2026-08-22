@@ -8,6 +8,7 @@ import { normalizeDomain, getFaviconUrl } from "@/lib/utils";
 import { parseCustomColor } from "@/lib/colors";
 import { Language, getTranslation } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { BidBentoLogo } from "@/components/BidBentoLogo";
 import {
   Zap,
   TrendingUp,
@@ -255,6 +256,9 @@ export default function CheckoutPage() {
           {/* Left: Form */}
           <div className="lg:col-span-7 space-y-6">
             <div>
+              <div className="mb-4">
+                <BidBentoLogo withBadge={true} size="md" />
+              </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
                 {t.modalTitle}
               </h1>
