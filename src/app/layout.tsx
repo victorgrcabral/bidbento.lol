@@ -2,11 +2,19 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "BidBento.lol - Dispute a Dominância Visual da Tela",
+  metadataBase: new URL("https://bidbento.lol"),
+  title: "BidBento.lol - Visual Screen Domination & Advertising Engine",
   description:
-    "Compre espaço e conquiste a tela em tempo real para sua marca, software ou SaaS no bidbento.lol. Inspirado na dinâmica viral do outbid.lol.",
+    "Claim screen space and drive real traffic to your brand, software or SaaS in real-time on bidbento.lol.",
   icons: {
-    icon: "/favicon.ico",
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    title: "BidBento.lol - Real-Time Screen Domination",
+    description: "Conquer visual territory and drive direct clicks to your website.",
+    images: ["/logo.png"],
   },
 };
 
@@ -16,8 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="dark">
-      <body className="antialiased bg-black text-white selection:bg-violet-600 selection:text-white">
+    <html lang="en" className="dark">
+      <body className="antialiased bg-[#050508] text-white selection:bg-violet-600 selection:text-white">
         {children}
       </body>
     </html>

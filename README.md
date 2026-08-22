@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo.svg" alt="BidBento.lol Logo" width="360" />
+  <img src="public/logo.png" alt="BidBento.lol Logo" width="360" />
   <br />
   <br />
 
