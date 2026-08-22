@@ -126,7 +126,7 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
       onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
     >
-      <div className="relative w-full h-full overflow-hidden rounded-3xl border border-white/10 bg-black/40 backdrop-blur-sm shadow-2xl">
+      <div className="relative w-full h-full overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-slate-200/50 dark:bg-black/40 backdrop-blur-sm shadow-inner dark:shadow-2xl">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPage}

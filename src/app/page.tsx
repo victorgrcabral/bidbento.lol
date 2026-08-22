@@ -134,7 +134,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-[#050508] dark:bg-[#050508] flex flex-col justify-between select-none">
+    <main className="relative w-screen h-screen overflow-hidden bg-slate-100 dark:bg-[#050508] text-slate-900 dark:text-white flex flex-col justify-between select-none transition-colors duration-300">
       {/* Top Ambient Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/10 blur-3xl pointer-events-none rounded-full" />
 
