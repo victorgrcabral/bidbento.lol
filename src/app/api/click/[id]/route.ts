@@ -4,11 +4,10 @@ import { ensureUrlProtocol } from "@/lib/utils";
 
 export async function GET(
   request: NextRequest,
-  props: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(props.params);
-    const brandId = resolvedParams.id;
+    const { id: brandId } = await params;
 
     const brand = await prisma.brand.findUnique({
       where: { id: brandId },
