@@ -7,6 +7,10 @@ export interface TranslationDict {
   boost: string;
   ranking: string;
   rules: string;
+  stats: string;
+  liveOnline: (count: number) => string;
+  visitorsSinceLaunch: (count: string) => string;
+  seeStats: string;
   secureCheckout: string;
   backToHome: string;
   emptyTitle: string;
@@ -91,6 +95,21 @@ export interface TranslationDict {
   leaderboardDesc: (count: number) => string;
   ofThePage: string;
 
+  // Stats Page
+  statsTitle: string;
+  statsHeroSubtitle: string;
+  liveVisitorsNow: string;
+  totalPageViews: string;
+  avgTimeOnPage: string;
+  conversionRateLabel: string;
+  trafficChannels: string;
+  topPages: string;
+  trafficGrowth: string;
+  directTraffic: string;
+  organicSearch: string;
+  socialTraffic: string;
+  referralTraffic: string;
+
   // Toast
   spacePurchasedToast: (domain: string) => string;
   boostAppliedToast: string;
@@ -129,15 +148,19 @@ export interface TranslationDict {
 export const translations: Record<Language, TranslationDict> = {
   en: {
     loading: "LOADING BIDBENTO.LOL...",
-    claimSpace: "Claim Screen Space",
+    claimSpace: "Claim your Bento",
     boost: "Boost",
     ranking: "Ranking",
     rules: "Rules",
+    stats: "Analytics",
+    liveOnline: (count) => `${count} online`,
+    visitorsSinceLaunch: (count) => `${count} visitors since launch`,
+    seeStats: "see stats →",
     secureCheckout: "Secure Checkout",
-    backToHome: "Back to BidBento.lol",
+    backToHome: "Back to bidbento.lol",
     emptyTitle: "The screen is empty",
-    emptyDesc: "Be the first brand to conquer 100% of the screen on BidBento.lol for just $1.00!",
-    claimNow: "Conquer the Screen Now",
+    emptyDesc: "Be the first brand to conquer 100% of the screen on bidbento.lol for just $1.00!",
+    claimNow: "Claim your Bento for $1.00",
     leaderBadge: "Leader",
     rankBadge: "Rank",
 
@@ -162,18 +185,18 @@ export const translations: Record<Language, TranslationDict> = {
     visitWebsite: "Visit Website",
     boostBrand: "Boost",
 
-    copyLeader: (name, percentage) => `⚡ ${name} dominates ${percentage}% of the screen. Claim your space now!`,
+    copyLeader: (name, percentage) => `⚡ ${name} dominates ${percentage}% of the screen. Claim your bento now!`,
     copyClicks: (count) => `👀 Over ${count} verified clicks generated for brands on screen.`,
     copyLastBid: (name, amount, time) => `🔥 Latest bid: ${name} added +${amount} (${time}).`,
-    copyStartingFrom: "💡 From $1.00 your brand gets instant worldwide visibility.",
-    copyAntiDilution: "🛡️ Don't get diluted! Secure your visual territory on BidBento.lol.",
+    copyStartingFrom: "💡 From $1.00 your brand gets instant worldwide visibility on bidbento.lol.",
+    copyAntiDilution: "🛡️ Don't get diluted! Secure your visual territory on bidbento.lol.",
     totalBids: "Total Pool",
 
-    modalTitle: "Claim Screen Space",
+    modalTitle: "Claim your Bento",
     modalDesc: "Compete for visual dominance and drive direct traffic to your project.",
     projectionTitle: "Real-Time Dominance Projection",
     projectedRank: (rank) => `Rank #${rank}`,
-    ofTheScreen: "of total screen real estate on BidBento.lol!",
+    ofTheScreen: "of total screen real estate on bidbento.lol!",
     domainExistsNote: (name, current) => `Existing domain (${name}). This bid will be added to your current ${current}!`,
     investmentAmount: "Investment Amount ($ USD)",
     orCustomAmount: "Or enter another amount...",
@@ -190,7 +213,7 @@ export const translations: Record<Language, TranslationDict> = {
     brandColorLabel: "Brand Highlight Color",
     customColorToggle: "Custom Color (HEX/RGB/CMYK)",
     paletteToggle: "Use Preset Palette",
-    payAndClaim: (amount) => `Claim Space for ${amount}`,
+    payAndClaim: (amount) => `Claim your Bento for ${amount}`,
     processing: "Processing...",
     uploadingImage: "Uploading image...",
     cardPreviewTitle: "Live Card Preview",
@@ -208,16 +231,30 @@ export const translations: Record<Language, TranslationDict> = {
     applyBoostBtn: (amount) => `Apply Boost of ${amount}`,
 
     leaderboardTitle: "Dominance Leaderboard",
-    leaderboardDesc: (count) => `All ${count} brands competing on BidBento.lol`,
+    leaderboardDesc: (count) => `All ${count} brands competing on bidbento.lol`,
     ofThePage: "of screen",
 
-    spacePurchasedToast: (domain) => `🎉 Space secured successfully for ${domain}!`,
+    statsTitle: "Live Analytics & Transparency",
+    statsHeroSubtitle: "Real-time traffic metrics, visitor activity, and click distribution across bidbento.lol.",
+    liveVisitorsNow: "Active Online Now",
+    totalPageViews: "Total Page Views",
+    avgTimeOnPage: "Avg. Session Duration",
+    conversionRateLabel: "Click-Through Rate",
+    trafficChannels: "Traffic Channels",
+    topPages: "Top Viewed Categories & Pages",
+    trafficGrowth: "Traffic Activity",
+    directTraffic: "Direct",
+    organicSearch: "Organic Search",
+    socialTraffic: "Social (X, LinkedIn)",
+    referralTraffic: "Referral",
+
+    spacePurchasedToast: (domain) => `🎉 Bento secured successfully for ${domain}!`,
     boostAppliedToast: "⚡ Boost applied successfully!",
 
     rulesTitle: "Rules & Guidelines",
     rulesSubtitle: "Official Rules",
-    rulesHeroTitle: "How BidBento.lol Works",
-    rulesHeroDesc: "BidBento.lol is a visual screen real-estate experiment. Below are the official rules, dilution mechanics, and content guidelines.",
+    rulesHeroTitle: "How bidbento.lol Works",
+    rulesHeroDesc: "bidbento.lol is a visual screen real-estate experiment. Below are the official rules, dilution mechanics, and content guidelines.",
     rule1Title: "1. Screen Real Estate & Treemap Dynamics",
     rule1Desc: "Screen area is mathematically partitioned using the Squarified Treemap algorithm. Each brand occupies a rectangular slice exactly proportional to its total investment compared to the active page pool.",
     rule1Formula: "Screen Share (%) = (Brand Total Investment / Total Page Pool) × 100",
@@ -241,20 +278,24 @@ export const translations: Record<Language, TranslationDict> = {
     faq2A: "The canvas is divided into pages of 12 brands. Page 1 always showcases the Top 12 largest brands. Visitors can browse pages or filter by category.",
     faq3Q: "Can I update my logo, color or tagline later?",
     faq3A: "Yes! Whenever you place a new bid for the same domain, you can update your slogan, image, and brand color.",
-    rulesCta: "Back and Claim Screen Space",
+    rulesCta: "Back and Claim your Bento",
   },
 
   es: {
     loading: "CARGANDO BIDBENTO.LOL...",
-    claimSpace: "Comprar Espacio en Pantalla",
+    claimSpace: "Reclamar tu Bento",
     boost: "Impulsar",
     ranking: "Ranking",
     rules: "Reglas",
+    stats: "Estadísticas",
+    liveOnline: (count) => `${count} online`,
+    visitorsSinceLaunch: (count) => `${count} visitantes desde el lanzamiento`,
+    seeStats: "ver stats →",
     secureCheckout: "Pago Seguro",
-    backToHome: "Volver a BidBento.lol",
+    backToHome: "Volver a bidbento.lol",
     emptyTitle: "La pantalla está vacía",
-    emptyDesc: "¡Sé la primera marca en conquistar el 100% de la pantalla en BidBento.lol por solo $1.00!",
-    claimNow: "Conquistar la Pantalla Ahora",
+    emptyDesc: "¡Sé la primera marca en conquistar el 100% de la pantalla en bidbento.lol por solo $1.00!",
+    claimNow: "Reclamar tu Bento por $1.00",
     leaderBadge: "Líder",
     rankBadge: "Puesto",
 
@@ -279,18 +320,18 @@ export const translations: Record<Language, TranslationDict> = {
     visitWebsite: "Visitar Sitio Web",
     boostBrand: "Boost",
 
-    copyLeader: (name, percentage) => `⚡ ${name} domina el ${percentage}% de la pantalla. ¡Toma el control ahora!`,
+    copyLeader: (name, percentage) => `⚡ ${name} domina el ${percentage}% de la pantalla. ¡Reclama tu bento ahora!`,
     copyClicks: (count) => `👀 Más de ${count} clics generados para las marcas en pantalla.`,
     copyLastBid: (name, amount, time) => `🔥 Último lance: ${name} sumó +${amount} (${time}).`,
-    copyStartingFrom: "💡 Desde $1.00 tu marca obtiene visibilidad global instantánea.",
-    copyAntiDilution: "🛡️ ¡No te dejes diluir! Asegura tu territorio en BidBento.lol.",
+    copyStartingFrom: "💡 Desde $1.00 tu marca obtiene visibilidad global instantánea en bidbento.lol.",
+    copyAntiDilution: "🛡️ ¡No te dejes diluir! Asegura tu territorio en bidbento.lol.",
     totalBids: "Fondo Total",
 
-    modalTitle: "Comprar Espacio en Pantalla",
+    modalTitle: "Reclamar tu Bento",
     modalDesc: "Compite por la dominancia visual y recibe tráfico directo para tu proyecto.",
     projectionTitle: "Proyección de Dominancia en Tiempo Real",
     projectedRank: (rank) => `Puesto #${rank}`,
-    ofTheScreen: "de toda el área de pantalla en BidBento.lol!",
+    ofTheScreen: "de toda el área de pantalla en bidbento.lol!",
     domainExistsNote: (name, current) => `Dominio existente (${name}). ¡Este valor se sumará a tus ${current}!`,
     investmentAmount: "Monto de Inversión ($ USD)",
     orCustomAmount: "O escribe otro monto...",
@@ -307,7 +348,7 @@ export const translations: Record<Language, TranslationDict> = {
     brandColorLabel: "Color de Destaque de la Marca",
     customColorToggle: "Color Personalizado (HEX/RGB/CMYK)",
     paletteToggle: "Usar Paleta Predeterminada",
-    payAndClaim: (amount) => `Asegurar Espacio por ${amount}`,
+    payAndClaim: (amount) => `Reclamar tu Bento por ${amount}`,
     processing: "Procesando...",
     uploadingImage: "Subiendo imagen...",
     cardPreviewTitle: "Vista Previa de tu Tarjeta",
@@ -325,16 +366,30 @@ export const translations: Record<Language, TranslationDict> = {
     applyBoostBtn: (amount) => `Aplicar Boost de ${amount}`,
 
     leaderboardTitle: "Ranking de Dominancia",
-    leaderboardDesc: (count) => `Todas las ${count} marcas disputando en BidBento.lol`,
+    leaderboardDesc: (count) => `Todas las ${count} marcas disputando en bidbento.lol`,
     ofThePage: "de pantalla",
 
-    spacePurchasedToast: (domain) => `🎉 ¡Espacio asegurado con éxito para ${domain}!`,
+    statsTitle: "Estadísticas en Vivo & Transparencia",
+    statsHeroSubtitle: "Métricas de tráfico en tiempo real, visitantes activos y distribución de clics en bidbento.lol.",
+    liveVisitorsNow: "Activos Online Ahora",
+    totalPageViews: "Visualizaciones Totales",
+    avgTimeOnPage: "Tiempo Promedio de Sesión",
+    conversionRateLabel: "Tasa de Clics (CTR)",
+    trafficChannels: "Canales de Tráfico",
+    topPages: "Páginas y Categorías Más Vistas",
+    trafficGrowth: "Actividad de Tráfico",
+    directTraffic: "Directo",
+    organicSearch: "Búsqueda Orgánica",
+    socialTraffic: "Redes Sociales (X, LinkedIn)",
+    referralTraffic: "Referidos",
+
+    spacePurchasedToast: (domain) => `🎉 ¡Bento asegurado con éxito para ${domain}!`,
     boostAppliedToast: "⚡ ¡Boost aplicado con éxito!",
 
     rulesTitle: "Reglas & Directrices",
     rulesSubtitle: "Reglas Oficiales",
-    rulesHeroTitle: "Cómo Funciona BidBento.lol",
-    rulesHeroDesc: "BidBento.lol es un experimento visual de espacio en pantalla. A continuación se presentan las reglas oficiales, dilución y directrices.",
+    rulesHeroTitle: "Cómo Funciona bidbento.lol",
+    rulesHeroDesc: "bidbento.lol es un experimento visual de espacio en pantalla. A continuación se presentan las reglas oficiales, dilución y directrices.",
     rule1Title: "1. Dinámica de Espacio & Algoritmo Treemap",
     rule1Desc: "El área de pantalla se calcula matemáticamente mediante el algoritmo Squarified Treemap. Cada marca ocupa una porción exactamente proporcional a su inversión total.",
     rule1Formula: "Firma en Pantalla (%) = (Inversión Total de la Marca / Total de la Página) × 100",
@@ -358,20 +413,24 @@ export const translations: Record<Language, TranslationDict> = {
     faq2A: "La pantalla se divide en páginas de 12 marcas. La Página 1 reúne el Top 12 con mayor inversión.",
     faq3Q: "¿Puedo actualizar el logo o eslogan más adelante?",
     faq3A: "¡Sí! Al realizar un nuevo lance para el mismo dominio puedes actualizar tu imagen, eslogan y color.",
-    rulesCta: "Volver y Conquistar Espacio",
+    rulesCta: "Volver y Reclamar tu Bento",
   },
 
   pt: {
     loading: "CARREGANDO O BIDBENTO.LOL...",
-    claimSpace: "Comprar Espaço na Tela",
+    claimSpace: "Reivindicar seu Bento",
     boost: "Boost",
     ranking: "Ranking",
     rules: "Regras",
+    stats: "Estatísticas",
+    liveOnline: (count) => `${count} online`,
+    visitorsSinceLaunch: (count) => `${count} visitantes desde o lançamento`,
+    seeStats: "ver stats →",
     secureCheckout: "Checkout Seguro",
-    backToHome: "Volver ao BidBento.lol",
+    backToHome: "Voltar ao bidbento.lol",
     emptyTitle: "A tela está vazia",
-    emptyDesc: "Seja a primeira marca a conquistar 100% de dominância no BidBento.lol por apenas $1.00!",
-    claimNow: "Conquistar a Tela Agora",
+    emptyDesc: "Seja a primeira marca a conquistar 100% de dominância no bidbento.lol por apenas $1.00!",
+    claimNow: "Reivindicar seu Bento por $1.00",
     leaderBadge: "Líder",
     rankBadge: "Posição",
 
@@ -396,18 +455,18 @@ export const translations: Record<Language, TranslationDict> = {
     visitWebsite: "Visitar Website",
     boostBrand: "Boost",
 
-    copyLeader: (name, percentage) => `⚡ ${name} lidera com ${percentage}% da tela. Conquiste seu espaço agora!`,
+    copyLeader: (name, percentage) => `⚡ ${name} lidera com ${percentage}% da tela. Conquiste seu bento agora!`,
     copyClicks: (count) => `👀 Mais de ${count} cliques gerados para as marcas na tela.`,
     copyLastBid: (name, amount, time) => `🔥 Último lance: ${name} investiu +${amount} (${time}).`,
-    copyStartingFrom: "💡 A partir de $1.00 sua marca já ganha visibilidade instantânea.",
-    copyAntiDilution: "🛡️ Não seja diluído! Garanta sua dominância visual no BidBento.lol.",
+    copyStartingFrom: "💡 A partir de $1.00 sua marca já ganha visibilidade instantânea no bidbento.lol.",
+    copyAntiDilution: "🛡️ Não seja diluído! Garanta sua dominância visual no bidbento.lol.",
     totalBids: "Pote Total",
 
-    modalTitle: "Comprar Espaço na Tela",
+    modalTitle: "Reivindicar seu Bento",
     modalDesc: "Dispute a dominância visual e receba tráfego direto para o seu projeto.",
     projectionTitle: "Projeção de Dominância em Tempo Real",
     projectedRank: (rank) => `Posição #${rank}`,
-    ofTheScreen: "de toda a área útil na tela do BidBento.lol!",
+    ofTheScreen: "de toda a área útil na tela do bidbento.lol!",
     domainExistsNote: (name, current) => `Domínio já existente (${name}). O valor será somado aos seus ${current}!`,
     investmentAmount: "Valor do Investimento ($ USD)",
     orCustomAmount: "Ou digite outro valor...",
@@ -424,7 +483,7 @@ export const translations: Record<Language, TranslationDict> = {
     brandColorLabel: "Cor de Destaque da Marca",
     customColorToggle: "Cor Personalizada (HEX/RGB/CMYK)",
     paletteToggle: "Usar Paleta Padrão",
-    payAndClaim: (amount) => `Garantir Espaço por ${amount}`,
+    payAndClaim: (amount) => `Reivindicar seu Bento por ${amount}`,
     processing: "Processando...",
     uploadingImage: "Enviando imagem...",
     cardPreviewTitle: "Pré-Visualização do seu Card",
@@ -442,16 +501,30 @@ export const translations: Record<Language, TranslationDict> = {
     applyBoostBtn: (amount) => `Aplicar Boost de ${amount}`,
 
     leaderboardTitle: "Ranking de Dominância",
-    leaderboardDesc: (count) => `Todas as ${count} marcas disputando no BidBento.lol`,
+    leaderboardDesc: (count) => `Todas as ${count} marcas disputando no bidbento.lol`,
     ofThePage: "da tela",
 
-    spacePurchasedToast: (domain) => `🎉 Espaço garantido com sucesso para ${domain}!`,
+    statsTitle: "Estatísticas em Tempo Real & Transparência",
+    statsHeroSubtitle: "Métricas de tráfego ao vivo, visitantes ativos e distribuição de cliques no bidbento.lol.",
+    liveVisitorsNow: "Ativos Online Agora",
+    totalPageViews: "Visualizações de Página",
+    avgTimeOnPage: "Duração Média da Sessão",
+    conversionRateLabel: "Taxa de Cliques (CTR)",
+    trafficChannels: "Canais de Tráfego",
+    topPages: "Categorias e Páginas Mais Acessadas",
+    trafficGrowth: "Atividade de Tráfego",
+    directTraffic: "Direto",
+    organicSearch: "Busca Orgânica",
+    socialTraffic: "Redes Sociais (X, LinkedIn)",
+    referralTraffic: "Referência",
+
+    spacePurchasedToast: (domain) => `🎉 Bento garantido com sucesso para ${domain}!`,
     boostAppliedToast: "⚡ Boost aplicado com sucesso!",
 
     rulesTitle: "Regras & Diretrizes",
     rulesSubtitle: "Regras Oficiais",
-    rulesHeroTitle: "Regras de Funcionamento do BidBento.lol",
-    rulesHeroDesc: "O BidBento.lol é um experimento público de visualização e monetização de espaço de tela. Abaixo estão as regras oficiais e diretrizes.",
+    rulesHeroTitle: "Regras de Funcionamento do bidbento.lol",
+    rulesHeroDesc: "O bidbento.lol é um experimento público de visualização e monetização de espaço de tela. Abaixo estão as regras oficiais e diretrizes.",
     rule1Title: "1. Dinâmica de Espaço & Algoritmo Treemap",
     rule1Desc: "A área da tela é calculada matematicamente através do algoritmo Squarified Treemap. Cada marca ocupa um retângulo cuja área percentual é proporcional ao valor investido.",
     rule1Formula: "Fatia da Tela (%) = (Valor Total Investido pela Marca / Valor Total da Página) × 100",
@@ -475,7 +548,7 @@ export const translations: Record<Language, TranslationDict> = {
     faq2A: "A tela é dividida em páginas de 12 marcas. A Página 1 reúne as 12 maiores marcas em valor investido.",
     faq3Q: "Posso trocar o logo ou slogan depois de pagar?",
     faq3A: "Sim! Ao realizar um novo lance para o mesmo domínio, você pode atualizar o slogan, logo e cor.",
-    rulesCta: "Voltar e Conquistar Espaço na Tela",
+    rulesCta: "Voltar e Reivindicar seu Bento",
   },
 };
 

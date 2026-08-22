@@ -22,8 +22,8 @@ export const EmptyCategoryPlaceholder: React.FC<EmptyCategoryPlaceholderProps> =
     en: {
       tag: "100% UNCLAIMED TERRITORY",
       title: (cat: string) => `No brands in ${cat} yet!`,
-      desc: "Be the first pioneer to claim this space and dominate 100% of the screen for just $1.00.",
-      cta: "Plant Your Flag for $1.00",
+      desc: "Be the first pioneer to claim this space and dominate 100% of the screen on bidbento.lol for just $1.00.",
+      cta: "Claim your Bento for $1.00",
       perks: [
         "100% Screen Share",
         "Instant Direct Traffic",
@@ -33,8 +33,8 @@ export const EmptyCategoryPlaceholder: React.FC<EmptyCategoryPlaceholderProps> =
     es: {
       tag: "TERRITORIO 100% DISPONIBLE",
       title: (cat: string) => `¡Aún no hay marcas en ${cat}!`,
-      desc: "Sé el primer pionero en reclamar este espacio y domina el 100% de la pantalla por solo $1.00.",
-      cta: "Plantar tu Bandera por $1.00",
+      desc: "Sé el primer pionero en reclamar este espacio y domina el 100% de la pantalla en bidbento.lol por solo $1.00.",
+      cta: "Reclamar tu Bento por $1.00",
       perks: [
         "100% de Pantalla",
         "Tráfico Directo Inmediato",
@@ -44,8 +44,8 @@ export const EmptyCategoryPlaceholder: React.FC<EmptyCategoryPlaceholderProps> =
     pt: {
       tag: "TERRITÓRIO 100% VIRGEM",
       title: (cat: string) => `Nenhuma marca em ${cat} ainda!`,
-      desc: "Seja o primeiro pioneiro a conquistar este espaço e domine 100% da tela por apenas $1.00.",
-      cta: "Fincar sua Bandeira por $1.00",
+      desc: "Seja o primeiro pioneiro a conquistar este espaço e domine 100% da tela no bidbento.lol por apenas $1.00.",
+      cta: "Reivindicar seu Bento por $1.00",
       perks: [
         "100% de Dominância",
         "Tráfego Direto Instantâneo",
@@ -55,8 +55,8 @@ export const EmptyCategoryPlaceholder: React.FC<EmptyCategoryPlaceholderProps> =
   }[language] || {
     tag: "100% UNCLAIMED TERRITORY",
     title: (cat: string) => `No brands in ${cat} yet!`,
-    desc: "Be the first pioneer to claim this space and dominate 100% of the screen for just $1.00.",
-    cta: "Plant Your Flag for $1.00",
+    desc: "Be the first pioneer to claim this space and dominate 100% of the screen on bidbento.lol for just $1.00.",
+    cta: "Claim your Bento for $1.00",
     perks: [
       "100% Screen Share",
       "Instant Direct Traffic",
@@ -64,7 +64,7 @@ export const EmptyCategoryPlaceholder: React.FC<EmptyCategoryPlaceholderProps> =
     ],
   };
 
-  const displayName = categoryName === "all" ? "BidBento" : categoryName;
+  const displayName = categoryName === "all" ? "bidbento.lol" : categoryName;
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center p-4 sm:p-8 text-center relative overflow-hidden select-none">

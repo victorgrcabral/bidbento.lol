@@ -36,9 +36,18 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
 }) => {
   const [selectedMobileBrand, setSelectedMobileBrand] = useState<BrandSpace | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [direction, setDirection] = useState(1);
+  const prevPageRef = useRef(currentPage);
 
   const touchStartY = useRef<number | null>(null);
   const isScrollingRef = useRef(false);
+
+  useEffect(() => {
+    if (currentPage !== prevPageRef.current) {
+      setDirection(currentPage > prevPageRef.current ? 1 : -1);
+      prevPageRef.current = currentPage;
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -60,12 +69,14 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
     const diff = touchStartY.current - touchEndY;
     touchStartY.current = null;
 
-    // Swipe up (scrolling down): Go to next page
+    // Swipe up (scrolling down): Go to next page (slide UP)
     if (diff > 45 && currentPage < totalPages) {
+      setDirection(1);
       onPageChange(currentPage + 1);
     }
-    // Swipe down (scrolling up): Go to previous page
+    // Swipe down (scrolling up): Go to previous page (slide DOWN)
     else if (diff < -45 && currentPage > 1) {
+      setDirection(-1);
       onPageChange(currentPage - 1);
     }
   };
@@ -77,8 +88,10 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
     if (Math.abs(e.deltaY) > 35) {
       isScrollingRef.current = true;
       if (e.deltaY > 0 && currentPage < totalPages) {
+        setDirection(1);
         onPageChange(currentPage + 1);
       } else if (e.deltaY < 0 && currentPage > 1) {
+        setDirection(-1);
         onPageChange(currentPage - 1);
       }
       setTimeout(() => {
@@ -119,6 +132,34 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
     );
   }
 
+  const slideVariants = {
+    enter: (dir: number) => ({
+      y: dir > 0 ? "100%" : "-100%",
+      opacity: 0.9,
+      scale: 0.98,
+    }),
+    center: {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        y: { type: "spring", stiffness: 280, damping: 32, mass: 0.9 },
+        opacity: { duration: 0.25 },
+        scale: { duration: 0.25 },
+      },
+    },
+    exit: (dir: number) => ({
+      y: dir > 0 ? "-100%" : "100%",
+      opacity: 0.6,
+      scale: 0.96,
+      transition: {
+        y: { type: "spring", stiffness: 280, damping: 32, mass: 0.9 },
+        opacity: { duration: 0.2 },
+        scale: { duration: 0.2 },
+      },
+    }),
+  };
+
   return (
     <div
       className="relative w-full h-full p-2 sm:p-3 overflow-hidden"
@@ -127,14 +168,15 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
       onWheel={handleWheel}
     >
       <div className="relative w-full h-full overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-slate-200/50 dark:bg-black/40 backdrop-blur-sm shadow-inner dark:shadow-2xl">
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout" custom={direction}>
           <motion.div
             key={currentPage}
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.25 }}
-            className="w-full h-full relative"
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="w-full h-full absolute inset-0"
           >
             {layoutBrands.map((brand) => (
               <BrandBlock

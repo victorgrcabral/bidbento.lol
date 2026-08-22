@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bidbento.lol"),
-  title: "BidBento.lol - Visual Screen Domination & Advertising Engine",
+  title: "bidbento.lol - Visual Screen Domination & Advertising Engine",
   description:
     "Claim screen space and drive real traffic to your brand, software or SaaS in real-time on bidbento.lol.",
   icons: {
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     apple: "/logo.png",
   },
   openGraph: {
-    title: "BidBento.lol - Real-Time Screen Domination",
+    title: "bidbento.lol - Real-Time Screen Domination",
     description: "Conquer visual territory and drive direct clicks to your website.",
     images: ["/logo.png"],
   },

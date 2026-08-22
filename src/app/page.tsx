@@ -11,6 +11,7 @@ import { PurchaseModal } from "@/components/PurchaseModal";
 import { BoostModal } from "@/components/BoostModal";
 import { LeaderboardDrawer } from "@/components/LeaderboardDrawer";
 import { BidBentoLogo } from "@/components/BidBentoLogo";
+import { LiveStatsPill } from "@/components/LiveStatsPill";
 import { Theme } from "@/components/ThemeToggle";
 import { CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -157,6 +158,11 @@ export default function HomePage() {
         availableCategories={data?.availableCategories || []}
         language={language}
       />
+
+      {/* Top Right Live Stats Pill */}
+      <div className="absolute top-3 right-3 z-40 hidden md:block">
+        <LiveStatsPill language={language} />
+      </div>
 
       {/* Main Screen Treemap Area with Vertical Swipe/Scroll Page Navigation */}
       <div className="relative w-full flex-1 pt-14 pb-24 md:pb-20 overflow-hidden">
