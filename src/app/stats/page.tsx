@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Language, getTranslation } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
-import { ThemeToggle, Theme } from "@/components/ThemeToggle";
 import { BidBentoLogo } from "@/components/BidBentoLogo";
 import {
   ChevronLeft,
@@ -15,30 +14,21 @@ import {
   ArrowUpRight,
   TrendingUp,
   Share2,
-  ExternalLink,
-  ShieldCheck,
   Zap,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 export default function StatsPage() {
   const [language, setLanguage] = useState<Language>("en");
-  const [theme, setTheme] = useState<Theme>("dark");
   const [timeRange, setTimeRange] = useState("24h");
   const [statsData, setStatsData] = useState<any>(null);
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
   const t = getTranslation(language);
 
-  // Sync theme & language
+  // Sync language & ensure dark mode
   useEffect(() => {
     try {
-      const savedTheme = localStorage.getItem("bidbento_theme") as Theme;
-      if (savedTheme === "light" || savedTheme === "dark") {
-        setTheme(savedTheme);
-        document.documentElement.classList.toggle("dark", savedTheme === "dark");
-      }
-
+      document.documentElement.classList.add("dark");
       const savedLang = localStorage.getItem("bidbento_lang") as Language;
       if (savedLang && (savedLang === "en" || savedLang === "es" || savedLang === "pt")) {
         setLanguage(savedLang);
@@ -50,14 +40,6 @@ export default function StatsPage() {
     setLanguage(lang);
     try {
       localStorage.setItem("bidbento_lang", lang);
-    } catch {}
-  };
-
-  const handleThemeChange = (nextTheme: Theme) => {
-    setTheme(nextTheme);
-    try {
-      localStorage.setItem("bidbento_theme", nextTheme);
-      document.documentElement.classList.toggle("dark", nextTheme === "dark");
     } catch {}
   };
 
@@ -118,20 +100,19 @@ export default function StatsPage() {
   const areaD = `${pathD} L ${points[points.length - 1].x} ${svgHeight} L ${points[0].x} ${svgHeight} Z`;
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-[#050508] text-slate-900 dark:text-white p-4 sm:p-8 md:p-12 overflow-y-auto selection:bg-violet-600 selection:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-[#050508] text-white p-4 sm:p-8 md:p-12 overflow-y-auto selection:bg-violet-600 selection:text-white">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Top Nav */}
-        <div className="flex items-center justify-between pb-6 border-b border-slate-200 dark:border-white/10 flex-wrap gap-4">
+        <div className="flex items-center justify-between pb-6 border-b border-white/10 flex-wrap gap-4">
           <Link
             href="/"
-            className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-700 dark:text-zinc-300 hover:text-slate-950 dark:hover:text-white bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 px-4 py-2 rounded-full transition-all shadow-sm"
+            className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-zinc-300 hover:text-white bg-zinc-900 border border-white/10 px-4 py-2 rounded-full transition-all shadow-sm hover:border-violet-500/50"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>{t.backToHome}</span>
           </Link>
 
           <div className="flex items-center gap-3">
-            <ThemeToggle theme={theme} onThemeChange={handleThemeChange} />
             <LanguageToggle language={language} onLanguageChange={handleLanguageChange} />
 
             <Link
@@ -149,7 +130,7 @@ export default function StatsPage() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <BidBentoLogo withBadge={true} size="sm" />
-              <span className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-500/30 px-2.5 py-1 rounded-full">
+              <span className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 {statsData?.liveOnline || 677} {t.liveVisitorsNow}
               </span>
@@ -157,21 +138,21 @@ export default function StatsPage() {
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
               {t.statsTitle}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-zinc-400 mt-1 max-w-xl">
+            <p className="text-xs sm:text-sm text-zinc-400 mt-1 max-w-xl">
               {t.statsHeroSubtitle}
             </p>
           </div>
 
           {/* Time Range Selector */}
-          <div className="flex items-center gap-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-white/10 p-1 rounded-full text-xs font-semibold self-start sm:self-auto shadow-sm">
+          <div className="flex items-center gap-1 bg-zinc-900 border border-white/10 p-1 rounded-full text-xs font-semibold self-start sm:self-auto shadow-sm">
             {["24h", "7d", "30d", "all"].map((r) => (
               <button
                 key={r}
                 onClick={() => setTimeRange(r)}
-                className={`px-3 py-1 rounded-full uppercase text-[11px] transition-all ${
+                className={`px-3 py-1 rounded-full uppercase text-[11px] transition-all cursor-pointer ${
                   timeRange === r
                     ? "bg-violet-600 text-white shadow-sm"
-                    : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                    : "text-zinc-400 hover:text-white"
                 }`}
               >
                 {r === "all" ? "All Time" : `Last ${r}`}
@@ -182,72 +163,72 @@ export default function StatsPage() {
 
         {/* 4 Main KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 text-xs mb-2">
+          <div className="bg-zinc-950/90 border border-white/10 rounded-2xl p-5 shadow-xl">
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
               <span className="font-semibold">{t.totalPageViews}</span>
-              <Users className="w-4 h-4 text-violet-500" />
+              <Users className="w-4 h-4 text-violet-400" />
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            <div className="text-2xl sm:text-3xl font-extrabold text-white">
               {(statsData?.totalVisitors || 1181912).toLocaleString()}
             </div>
-            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 mt-1 inline-flex items-center gap-0.5">
+            <span className="text-[11px] font-mono text-emerald-400 mt-1 inline-flex items-center gap-0.5">
               <ArrowUpRight className="w-3.5 h-3.5" /> +24% vs last week
             </span>
           </div>
 
-          <div className="bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 text-xs mb-2">
+          <div className="bg-zinc-950/90 border border-white/10 rounded-2xl p-5 shadow-xl">
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
               <span className="font-semibold">{t.realClicks}</span>
-              <MousePointerClick className="w-4 h-4 text-emerald-500" />
+              <MousePointerClick className="w-4 h-4 text-emerald-400" />
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+            <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400">
               {(statsData?.totalClicks || 2480).toLocaleString()}
             </div>
-            <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 mt-1 block">
+            <span className="text-[11px] font-mono text-zinc-400 mt-1 block">
               100% verified brand clicks
             </span>
           </div>
 
-          <div className="bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 text-xs mb-2">
+          <div className="bg-zinc-950/90 border border-white/10 rounded-2xl p-5 shadow-xl">
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
               <span className="font-semibold">{t.conversionRateLabel}</span>
-              <TrendingUp className="w-4 h-4 text-sky-500" />
+              <TrendingUp className="w-4 h-4 text-sky-400" />
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            <div className="text-2xl sm:text-3xl font-extrabold text-white">
               {statsData?.conversionRate || "16.4%"}
             </div>
-            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 mt-1 inline-flex items-center gap-0.5">
+            <span className="text-[11px] font-mono text-emerald-400 mt-1 inline-flex items-center gap-0.5">
               <ArrowUpRight className="w-3.5 h-3.5" /> High user intent
             </span>
           </div>
 
-          <div className="bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-white/10 rounded-2xl p-5 shadow-sm dark:shadow-none">
-            <div className="flex items-center justify-between text-slate-500 dark:text-zinc-400 text-xs mb-2">
+          <div className="bg-zinc-950/90 border border-white/10 rounded-2xl p-5 shadow-xl">
+            <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
               <span className="font-semibold">{t.avgTimeOnPage}</span>
-              <Clock className="w-4 h-4 text-amber-500" />
+              <Clock className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">
+            <div className="text-2xl sm:text-3xl font-extrabold text-white">
               {statsData?.avgSessionTime || "0m 58s"}
             </div>
-            <span className="text-[11px] font-mono text-slate-500 dark:text-zinc-400 mt-1 block">
+            <span className="text-[11px] font-mono text-zinc-400 mt-1 block">
               Bounce Rate: {statsData?.bounceRate || "28%"}
             </span>
           </div>
         </div>
 
         {/* Traffic Activity Curve Chart */}
-        <div className="bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-white/10 rounded-3xl p-5 sm:p-7 shadow-sm dark:shadow-none relative overflow-hidden">
+        <div className="bg-zinc-950/90 border border-white/10 rounded-3xl p-5 sm:p-7 shadow-2xl relative overflow-hidden">
           <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Activity className="w-5 h-5 text-violet-500" />
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Activity className="w-5 h-5 text-violet-400" />
                 <span>{t.trafficGrowth}</span>
               </h2>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
+              <p className="text-xs text-zinc-400">
                 Visitor volume distribution across 24h cycle
               </p>
             </div>
-            <span className="text-xs font-mono font-bold text-slate-600 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-900 px-3 py-1.5 rounded-full border border-slate-200 dark:border-white/10">
+            <span className="text-xs font-mono font-bold text-zinc-300 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/10">
               Peak: 6.9k visitors/hr
             </span>
           </div>
@@ -322,7 +303,7 @@ export default function StatsPage() {
             </svg>
 
             {/* Time labels below chart */}
-            <div className="flex justify-between text-[10px] sm:text-xs font-mono text-slate-400 dark:text-zinc-500 mt-2 px-2">
+            <div className="flex justify-between text-[10px] sm:text-xs font-mono text-zinc-500 mt-2 px-2">
               {trafficData.map((d: any, i: number) => (
                 <span key={i} className={i % 2 !== 0 ? "hidden sm:inline" : ""}>
                   {d.time}
@@ -335,9 +316,9 @@ export default function StatsPage() {
         {/* 2-Column Breakdown: Channels & Top Categories */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Traffic Channels */}
-          <div className="bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-sm dark:shadow-none">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Share2 className="w-4 h-4 text-emerald-500" />
+          <div className="bg-zinc-950/90 border border-white/10 rounded-3xl p-6 shadow-xl">
+            <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+              <Share2 className="w-4 h-4 text-emerald-400" />
               <span>{t.trafficChannels}</span>
             </h3>
 
@@ -350,12 +331,12 @@ export default function StatsPage() {
               ]).map((c: any, i: number) => (
                 <div key={i} className="space-y-1.5">
                   <div className="flex justify-between text-xs font-medium">
-                    <span className="text-slate-700 dark:text-zinc-300">{c.name}</span>
-                    <span className="font-mono text-slate-500 dark:text-zinc-400">
+                    <span className="text-zinc-300">{c.name}</span>
+                    <span className="font-mono text-zinc-400">
                       {c.count} ({c.percentage}%)
                     </span>
                   </div>
-                  <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-zinc-900 overflow-hidden">
+                  <div className="w-full h-2 rounded-full bg-zinc-900 overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -370,9 +351,9 @@ export default function StatsPage() {
           </div>
 
           {/* Top Categories / Pages */}
-          <div className="bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-sm dark:shadow-none">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-violet-500" />
+          <div className="bg-zinc-950/90 border border-white/10 rounded-3xl p-6 shadow-xl">
+            <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-violet-400" />
               <span>{t.topPages}</span>
             </h3>
 
@@ -386,15 +367,15 @@ export default function StatsPage() {
               ]).map((p: any, i: number) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200/80 dark:border-white/5 text-xs"
+                  className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/60 border border-white/5 text-xs"
                 >
                   <div className="min-w-0 pr-3">
-                    <span className="font-mono text-violet-600 dark:text-violet-400 font-bold block truncate">
+                    <span className="font-mono text-violet-400 font-bold block truncate">
                       {p.page}
                     </span>
-                    <span className="text-[11px] text-slate-500 dark:text-zinc-400">{p.name}</span>
+                    <span className="text-[11px] text-zinc-400">{p.name}</span>
                   </div>
-                  <span className="font-mono font-bold text-slate-800 dark:text-zinc-200 shrink-0">
+                  <span className="font-mono font-bold text-zinc-200 shrink-0">
                     {p.views} views
                   </span>
                 </div>
@@ -404,13 +385,13 @@ export default function StatsPage() {
         </div>
 
         {/* Live Brands Click Leaderboard */}
-        <div className="bg-white dark:bg-zinc-950/90 border border-slate-200 dark:border-white/10 rounded-3xl p-6 shadow-sm dark:shadow-none">
+        <div className="bg-zinc-950/90 border border-white/10 rounded-3xl p-6 shadow-xl">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <MousePointerClick className="w-4 h-4 text-emerald-500" />
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <MousePointerClick className="w-4 h-4 text-emerald-400" />
               <span>Top Clicked Brands on bidbento.lol</span>
             </h3>
-            <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
+            <span className="text-xs text-zinc-400 font-mono">
               Live Click Counts
             </span>
           </div>
@@ -422,22 +403,22 @@ export default function StatsPage() {
                 href={`/api/click/${b.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-3 rounded-2xl bg-slate-50 dark:bg-zinc-900/60 border border-slate-200/80 dark:border-white/5 hover:border-violet-500/50 flex items-center justify-between transition-all group"
+                className="p-3 rounded-2xl bg-zinc-900/60 border border-white/5 hover:border-violet-500/50 flex items-center justify-between transition-all group cursor-pointer"
               >
                 <div className="min-w-0 pr-2">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-mono text-slate-400 dark:text-zinc-500">
+                    <span className="text-xs font-mono text-zinc-500">
                       #{idx + 1}
                     </span>
-                    <span className="font-bold text-xs text-slate-900 dark:text-white truncate group-hover:text-violet-500">
+                    <span className="font-bold text-xs text-white truncate group-hover:text-violet-400">
                       {b.name}
                     </span>
                   </div>
-                  <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-mono block truncate">
+                  <span className="text-[10px] text-zinc-400 font-mono block truncate">
                     {b.domain}
                   </span>
                 </div>
-                <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 shrink-0">
+                <span className="text-xs font-mono font-bold text-emerald-400 shrink-0">
                   {b.clicksCount} clicks
                 </span>
               </a>

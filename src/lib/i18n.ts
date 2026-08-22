@@ -48,6 +48,7 @@ export interface TranslationDict {
   copyLastBid: (name: string, amount: string, time: string) => string;
   copyStartingFrom: string;
   copyAntiDilution: string;
+  copyFairness: string;
   totalBids: string;
 
   // Purchase Modal & Checkout
@@ -190,6 +191,7 @@ export const translations: Record<Language, TranslationDict> = {
     copyLastBid: (name, amount, time) => `🔥 Latest bid: ${name} added +${amount} (${time}).`,
     copyStartingFrom: "💡 From $1.00 your brand gets instant worldwide visibility on bidbento.lol.",
     copyAntiDilution: "🛡️ Don't get diluted! Secure your visual territory on bidbento.lol.",
+    copyFairness: "💎 A fairer canvas: smaller budgets can conquer pages 2 & 3 with high visibility and full control over their ROI.",
     totalBids: "Total Pool",
 
     modalTitle: "Claim your Bento",
@@ -325,6 +327,7 @@ export const translations: Record<Language, TranslationDict> = {
     copyLastBid: (name, amount, time) => `🔥 Último lance: ${name} sumó +${amount} (${time}).`,
     copyStartingFrom: "💡 Desde $1.00 tu marca obtiene visibilidad global instantánea en bidbento.lol.",
     copyAntiDilution: "🛡️ ¡No te dejes diluir! Asegura tu territorio en bidbento.lol.",
+    copyFairness: "💎 Un ranking más justo: presupuestos accesibles dominan las páginas 2 y 3 con visibilidad real y control total.",
     totalBids: "Fondo Total",
 
     modalTitle: "Reclamar tu Bento",
@@ -460,6 +463,7 @@ export const translations: Record<Language, TranslationDict> = {
     copyLastBid: (name, amount, time) => `🔥 Último lance: ${name} investiu +${amount} (${time}).`,
     copyStartingFrom: "💡 A partir de $1.00 sua marca já ganha visibilidade instantânea no bidbento.lol.",
     copyAntiDilution: "🛡️ Não seja diluído! Garanta sua dominância visual no bidbento.lol.",
+    copyFairness: "💎 Um ranking mais justo: orçamentos menores conquistam as páginas 2 e 3 com visibilidade real e controle total.",
     totalBids: "Pote Total",
 
     modalTitle: "Reivindicar seu Bento",

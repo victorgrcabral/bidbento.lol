@@ -1,12 +1,12 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency } from "@/lib/currency";
 import { formatTimeAgo, getFaviconUrl } from "@/lib/utils";
 import { Language, getTranslation } from "@/lib/i18n";
 import { X, Trophy, MousePointerClick, Zap } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface LeaderboardDrawerProps {
   isOpen: boolean;
@@ -26,15 +26,31 @@ export const LeaderboardDrawer: React.FC<LeaderboardDrawerProps> = ({
   onBoost,
 }) => {
   const t = getTranslation(language);
+
+  // Close on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex justify-end bg-black/75 backdrop-blur-sm transition-opacity"
+      onClick={onClose}
+    >
       <motion.div
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        transition={{ type: "spring", damping: 28, stiffness: 220 }}
+        onClick={(e) => e.stopPropagation()}
         className="w-full max-w-md h-full bg-zinc-950 border-l border-white/10 p-6 shadow-2xl flex flex-col text-white overflow-hidden"
       >
         {/* Header */}
@@ -53,7 +69,8 @@ export const LeaderboardDrawer: React.FC<LeaderboardDrawerProps> = ({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            title="Close"
           >
             <X className="w-5 h-5" />
           </button>
@@ -122,7 +139,7 @@ export const LeaderboardDrawer: React.FC<LeaderboardDrawerProps> = ({
                       onClose();
                       onBoost(b);
                     }}
-                    className="p-2 rounded-xl bg-violet-600/20 hover:bg-violet-600 text-violet-300 hover:text-white transition-colors"
+                    className="p-2 rounded-xl bg-violet-600/20 hover:bg-violet-600 text-violet-300 hover:text-white transition-colors cursor-pointer"
                     title={t.boostBrand}
                   >
                     <Zap className="w-3.5 h-3.5" />

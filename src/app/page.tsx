@@ -12,7 +12,6 @@ import { BoostModal } from "@/components/BoostModal";
 import { LeaderboardDrawer } from "@/components/LeaderboardDrawer";
 import { BidBentoLogo } from "@/components/BidBentoLogo";
 import { LiveStatsPill } from "@/components/LiveStatsPill";
-import { Theme } from "@/components/ThemeToggle";
 import { CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -21,7 +20,6 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
   const [language, setLanguage] = useState<Language>("en");
-  const [theme, setTheme] = useState<Theme>("dark");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("all");
   
@@ -33,38 +31,32 @@ export default function HomePage() {
 
   const t = getTranslation(language);
 
-  // Auto-detect language, theme, and currency
+  // Auto-detect language and currency & ensure dark mode
   useEffect(() => {
     try {
-      // 1. Theme (default dark)
-      const savedTheme = localStorage.getItem("bidbento_theme") as Theme;
-      if (savedTheme === "light" || savedTheme === "dark") {
-        setTheme(savedTheme);
-        document.documentElement.classList.toggle("dark", savedTheme === "dark");
-      } else {
-        document.documentElement.classList.add("dark");
-      }
+      document.documentElement.classList.add("dark");
 
-      // 2. Language & Currency
+      // 1. Language
       const savedLang = localStorage.getItem("bidbento_lang") as Language;
       if (savedLang && (savedLang === "en" || savedLang === "es" || savedLang === "pt")) {
         setLanguage(savedLang);
       } else {
-        const userLocale = navigator.language.toLowerCase();
-        if (userLocale.startsWith("pt")) {
+        const browserLang = navigator.language.toLowerCase();
+        if (browserLang.startsWith("pt")) {
           setLanguage("pt");
-          setCurrency("BRL");
-        } else if (userLocale.startsWith("es")) {
+        } else if (browserLang.startsWith("es")) {
           setLanguage("es");
-          setCurrency("EUR");
         } else {
           setLanguage("en");
-          setCurrency("USD");
         }
       }
-    } catch {
-      // Keep defaults
-    }
+
+      // 2. Currency
+      const savedCurrency = localStorage.getItem("bidbento_currency") as CurrencyCode;
+      if (savedCurrency && (savedCurrency === "USD" || savedCurrency === "EUR" || savedCurrency === "BRL")) {
+        setCurrency(savedCurrency);
+      }
+    } catch {}
   }, []);
 
   const handleLanguageChange = (lang: Language) => {
@@ -74,43 +66,40 @@ export default function HomePage() {
     } catch {}
   };
 
-  const handleThemeChange = (nextTheme: Theme) => {
-    setTheme(nextTheme);
+  const handleCurrencyChange = (curr: CurrencyCode) => {
+    setCurrency(curr);
     try {
-      localStorage.setItem("bidbento_theme", nextTheme);
-      document.documentElement.classList.toggle("dark", nextTheme === "dark");
+      localStorage.setItem("bidbento_currency", curr);
     } catch {}
   };
 
-  // Fetch Spaces Data with Pagination and Category Filter
   const fetchSpaces = useCallback(async () => {
     try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: "12",
-        category: selectedCategory,
-      });
+      const url = new URL("/api/spaces", window.location.origin);
+      url.searchParams.set("page", currentPage.toString());
+      if (selectedCategory && selectedCategory !== "all") {
+        url.searchParams.set("category", selectedCategory);
+      }
 
-      const res = await fetch(`/api/spaces?${params.toString()}`, { cache: "no-store" });
+      const res = await fetch(url.toString(), { cache: "no-store" });
       if (res.ok) {
-        const json: SpacesResponse = await res.json();
+        const json = await res.json();
         setData(json);
       }
-    } catch (e) {
-      console.error("Failed to fetch spaces:", e);
+    } catch (err) {
+      console.error("Failed to fetch spaces:", err);
     } finally {
       setIsLoading(false);
     }
   }, [currentPage, selectedCategory]);
 
-  // Poll for real-time updates every 4 seconds
   useEffect(() => {
     fetchSpaces();
+    // Fast polling for real-time live canvas changes
     const interval = setInterval(fetchSpaces, 4000);
     return () => clearInterval(interval);
   }, [fetchSpaces]);
 
-  // Reset to page 1 when changing category filter
   const handleSelectCategory = (cat: string) => {
     setSelectedCategory(cat);
     setCurrentPage(1);
@@ -135,9 +124,9 @@ export default function HomePage() {
   };
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-slate-100 dark:bg-[#050508] text-slate-900 dark:text-white flex flex-col justify-between select-none transition-colors duration-300">
+    <main className="relative w-screen h-screen overflow-hidden bg-[#050508] text-white flex flex-col justify-between select-none">
       {/* Top Ambient Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/10 blur-3xl pointer-events-none rounded-full" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/15 blur-3xl pointer-events-none rounded-full" />
 
       {/* Top Left Logo Brand */}
       <div className="absolute top-3 left-3 z-40 hidden sm:block">
@@ -188,7 +177,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Bottom Conversion Bar with Pagination, Language Switcher & Dark/Light Theme */}
+      {/* Bottom Conversion Bar with Pagination, Language Switcher & Real-Time Stats */}
       <BottomConversionBar
         brands={data?.brands || []}
         totalAmount={data?.totalAmount || 0}
@@ -199,11 +188,9 @@ export default function HomePage() {
         leader={data?.leader || null}
         lastBid={data?.lastBid || null}
         currency={currency}
-        onCurrencyChange={(c) => setCurrency(c)}
+        onCurrencyChange={handleCurrencyChange}
         language={language}
         onLanguageChange={handleLanguageChange}
-        theme={theme}
-        onThemeChange={handleThemeChange}
         onOpenPurchase={() => setIsPurchaseOpen(true)}
         onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
       />
@@ -253,13 +240,13 @@ export default function HomePage() {
       <AnimatePresence>
         {successToast && (
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.9 }}
-            className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-emerald-950/90 border border-emerald-500/40 text-emerald-200 px-5 py-3 rounded-2xl shadow-2xl backdrop-blur-md flex items-center gap-2.5 text-xs sm:text-sm font-semibold"
+            exit={{ opacity: 0, y: 30, scale: 0.95 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-black px-5 py-3 rounded-2xl font-bold shadow-2xl flex items-center gap-2.5 border border-emerald-400"
           >
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-            <span>{successToast}</span>
+            <CheckCircle2 className="w-5 h-5 text-black" />
+            <span className="text-xs sm:text-sm">{successToast}</span>
           </motion.div>
         )}
       </AnimatePresence>
