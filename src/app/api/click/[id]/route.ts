@@ -4,10 +4,11 @@ import { ensureUrlProtocol } from "@/lib/utils";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const brandId = params.id;
+    const resolvedParams = await Promise.resolve(props.params);
+    const brandId = resolvedParams.id;
 
     const brand = await prisma.brand.findUnique({
       where: { id: brandId },
@@ -20,7 +21,6 @@ export async function GET(
     const referrer = request.headers.get("referer") || null;
     const userAgent = request.headers.get("user-agent") || null;
 
-    // Increment click count asynchronously and record event
     await prisma.$transaction([
       prisma.brand.update({
         where: { id: brandId },
