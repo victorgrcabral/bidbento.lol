@@ -32,27 +32,25 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   ];
 
   return (
-    <div className="absolute top-3 left-0 right-0 z-30 pointer-events-none flex justify-center px-4">
-      <div className="flex items-center gap-1.5 p-1 bg-white/90 dark:bg-zinc-950/80 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 rounded-full max-w-full overflow-x-auto no-scrollbar shadow-lg shadow-black/5 dark:shadow-black/50 pointer-events-auto">
-        {categoryMap.map((cat) => {
-          const isActive = selectedCategory === cat.key;
+    <div className="flex items-center gap-1.5 p-1 bg-zinc-950/85 backdrop-blur-xl border border-white/10 rounded-full max-w-full overflow-x-auto no-scrollbar shadow-xl shadow-black/50 pointer-events-auto">
+      {categoryMap.map((cat) => {
+        const isActive = selectedCategory === cat.key;
 
-          return (
-            <button
-              key={cat.key}
-              onClick={() => onSelectCategory(cat.key)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                isActive
-                  ? "bg-violet-600 text-white shadow-sm shadow-violet-500/40"
-                  : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5"
-              }`}
-            >
-              {cat.key === "all" ? <Layers className="w-3 h-3" /> : null}
-              <span>{cat.label}</span>
-            </button>
-          );
-        })}
-      </div>
+        return (
+          <button
+            key={cat.key}
+            onClick={() => onSelectCategory(cat.key)}
+            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+              isActive
+                ? "bg-violet-600 text-white shadow-sm shadow-violet-500/40"
+                : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
+            }`}
+          >
+            {cat.key === "all" ? <Layers className="w-3 h-3" /> : null}
+            <span>{cat.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 };

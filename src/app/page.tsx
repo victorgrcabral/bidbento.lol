@@ -128,30 +128,35 @@ export default function HomePage() {
       {/* Top Ambient Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/15 blur-3xl pointer-events-none rounded-full" />
 
-      {/* Top Left Logo Brand */}
-      <div className="absolute top-3 left-3 z-40 hidden sm:block">
-        <BidBentoLogo
-          withBadge={true}
-          size="sm"
-          onClick={() => {
-            setSelectedCategory("all");
-            setCurrentPage(1);
-          }}
-        />
-      </div>
+      {/* Top Header Navbar */}
+      <header className="absolute top-0 left-0 right-0 z-40 h-14 px-3 sm:px-4 flex items-center justify-between gap-3 pointer-events-none">
+        {/* Left Logo */}
+        <div className="pointer-events-auto shrink-0 hidden sm:block">
+          <BidBentoLogo
+            withBadge={true}
+            size="sm"
+            onClick={() => {
+              setSelectedCategory("all");
+              setCurrentPage(1);
+            }}
+          />
+        </div>
 
-      {/* Top Category Filter Chips */}
-      <CategoryFilter
-        selectedCategory={selectedCategory}
-        onSelectCategory={handleSelectCategory}
-        availableCategories={data?.availableCategories || []}
-        language={language}
-      />
+        {/* Center Category Filter */}
+        <div className="pointer-events-auto flex-1 max-w-full sm:max-w-xl md:max-w-2xl flex justify-center overflow-x-auto no-scrollbar mx-auto">
+          <CategoryFilter
+            selectedCategory={selectedCategory}
+            onSelectCategory={handleSelectCategory}
+            availableCategories={data?.availableCategories || []}
+            language={language}
+          />
+        </div>
 
-      {/* Top Right Live Stats Pill */}
-      <div className="absolute top-3 right-3 z-40 hidden md:block">
-        <LiveStatsPill language={language} />
-      </div>
+        {/* Right Live Stats */}
+        <div className="pointer-events-auto shrink-0 hidden md:block">
+          <LiveStatsPill language={language} />
+        </div>
+      </header>
 
       {/* Main Screen Treemap Area with Vertical Swipe/Scroll Page Navigation */}
       <div className="relative w-full flex-1 pt-14 pb-24 md:pb-20 overflow-hidden">

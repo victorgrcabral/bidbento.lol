@@ -42,7 +42,7 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
     if (isMobile) return;
     hoverTimeoutRef.current = setTimeout(() => {
       setIsHovered(false);
-    }, 150);
+    }, 180);
   };
 
   const handleClick = (e: React.MouseEvent) => {
@@ -61,14 +61,12 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
 
   const brandColor = brand.color || "#7c3aed";
 
-  // Dynamic Viewport-Safe Popover Position:
-  const isTallBlock = rect.h > 50;
-  // If the block is not at the extreme top (rect.y > 18 or bottom > 40), ALWAYS open UPWARDS
-  const openUpwards = !isTallBlock && (rect.y > 18 || (rect.y + rect.h) > 40);
-
-  // Horizontal anchoring to keep card fully on screen
-  const isRightAnchored = rect.x > 60 || (rect.x + rect.w) > 75;
-  const isLeftAnchored = rect.x < 25;
+  // Viewport-safe Popover Positioning:
+  // Large/Tall blocks anchor inside their spacious area, smaller blocks float above/below safely
+  const isSpaciousBlock = rect.w > 28 && rect.h > 28;
+  const openUpwards = !isSpaciousBlock && rect.y > 35;
+  const isRightAnchored = rect.x > 60 || (rect.x + rect.w) > 80;
+  const isLeftAnchored = rect.x < 20;
 
   return (
     <div
@@ -78,7 +76,7 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
         top: `${rect.y}%`,
         width: `${rect.w}%`,
         height: `${rect.h}%`,
-        zIndex: isHovered ? 75 : 1,
+        zIndex: isHovered ? 80 : 1,
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -91,39 +89,39 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
           borderColor: isHovered
             ? brandColor
             : brand.color
-            ? `${brand.color}45`
+            ? `${brand.color}50`
             : undefined,
           boxShadow: isHovered
-            ? `0 0 30px ${brandColor}40, inset 0 0 15px ${brandColor}20`
+            ? `0 0 35px ${brandColor}50, inset 0 0 15px ${brandColor}25`
             : undefined,
         }}
-        className={`w-full h-full rounded-2xl relative overflow-hidden flex flex-col items-center justify-center cursor-pointer transition-all duration-200 border bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-zinc-950/90 dark:to-black/95 border-slate-200 dark:border-white/10 group shadow-sm dark:shadow-none ${
-          isHovered ? "ring-2 ring-violet-500/50 scale-[1.01] shadow-xl" : ""
+        className={`w-full h-full rounded-2xl relative overflow-hidden flex flex-col items-center justify-center cursor-pointer transition-all duration-200 border bg-gradient-to-br from-zinc-950/95 via-black/95 to-black border-white/10 group ${
+          isHovered ? "ring-2 ring-violet-500/60 scale-[1.01] shadow-2xl z-20" : ""
         }`}
       >
         {/* Background Ambient Glow */}
         <div
-          className="absolute inset-0 opacity-15 pointer-events-none transition-opacity duration-300 group-hover:opacity-30"
+          className="absolute inset-0 opacity-15 group-hover:opacity-30 transition-opacity duration-300 pointer-events-none"
           style={{
             background: `radial-gradient(circle at center, ${brandColor} 0%, transparent 70%)`,
           }}
         />
 
-        {/* Top Badges */}
-        <div className="absolute top-2 left-2 right-2 flex items-center justify-between pointer-events-none z-10">
+        {/* Top Badges with concentric rounding */}
+        <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none z-10">
           {brand.rank === 1 && (
-            <span className="flex items-center gap-1 text-[9px] uppercase font-black tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40 px-1.5 py-0.5 rounded-md backdrop-blur-md">
-              <Trophy className="w-2.5 h-2.5 text-amber-500 dark:text-amber-400" /> #{brand.rank}
+            <span className="flex items-center gap-1.5 text-[10px] uppercase font-black tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-lg backdrop-blur-md shadow-sm">
+              <Trophy className="w-3 h-3 text-amber-400" /> #{brand.rank}
             </span>
           )}
 
           {isMedium && brand.rank !== 1 && (
-            <span className="text-[10px] font-mono text-slate-600 dark:text-zinc-400 bg-slate-200/80 dark:bg-zinc-900/80 px-1.5 py-0.5 rounded border border-slate-300/60 dark:border-white/5">
+            <span className="text-[10px] font-mono text-zinc-400 bg-zinc-900/80 px-2 py-0.5 rounded-lg border border-white/10 backdrop-blur-sm">
               #{brand.rank}
             </span>
           )}
 
-          <span className="ml-auto text-[10px] font-bold text-violet-700 dark:text-violet-300 bg-violet-100/90 dark:bg-violet-950/60 border border-violet-300 dark:border-violet-500/30 px-1.5 py-0.5 rounded-md backdrop-blur-md">
+          <span className="ml-auto text-[10px] font-bold text-violet-300 bg-violet-950/70 border border-violet-500/30 px-2 py-0.5 rounded-lg backdrop-blur-md">
             {brand.percentage}%
           </span>
         </div>
@@ -132,7 +130,7 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
         <div className="flex flex-col items-center justify-center p-2 text-center max-w-full z-10 pointer-events-none">
           {/* Logo */}
           <div
-            className={`rounded-xl bg-white dark:bg-zinc-900/90 border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-md ${
+            className={`rounded-xl bg-zinc-900/90 border border-white/10 flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-md ${
               isHuge
                 ? "w-20 h-20 p-3 mb-2.5"
                 : isLarge
@@ -159,27 +157,27 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
           {/* Name & Tagline */}
           {isLarge && (
             <>
-              <h4 className="font-bold text-slate-900 dark:text-white tracking-tight leading-none truncate max-w-full px-2 text-sm sm:text-base">
+              <h4 className="font-bold text-white tracking-tight leading-none truncate max-w-full px-2 text-sm sm:text-base">
                 {brand.name}
               </h4>
-              <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-mono mt-0.5 truncate max-w-full px-2">
+              <p className="text-[11px] text-zinc-400 font-mono mt-0.5 truncate max-w-full px-2">
                 {brand.domain}
               </p>
             </>
           )}
 
           {isHuge && brand.tagline && (
-            <p className="text-xs text-slate-600 dark:text-zinc-300 mt-2 line-clamp-2 px-3 font-normal max-w-sm leading-snug opacity-90">
+            <p className="text-xs text-zinc-300 mt-2 line-clamp-2 px-3 font-normal max-w-sm leading-snug opacity-90">
               &ldquo;{brand.tagline}&rdquo;
             </p>
           )}
         </div>
 
-        {/* Subtle click indicator on hover */}
-        {isHovered && (
-          <div className="absolute bottom-2 right-2 text-[10px] text-slate-600 dark:text-zinc-400 font-mono flex items-center gap-1 bg-white/90 dark:bg-black/80 px-2 py-0.5 rounded-full border border-slate-200 dark:border-white/10 z-10 shadow-sm">
-            <MousePointerClick className="w-3 h-3 text-violet-500 dark:text-violet-400" />
-            <span className="hidden sm:inline">bidbento.lol/api/click</span>
+        {/* Verified Clicks Counter inside block */}
+        {isMedium && (
+          <div className="absolute bottom-2.5 right-2.5 text-[10px] text-zinc-400 font-mono flex items-center gap-1 bg-black/80 px-2 py-0.5 rounded-full border border-white/10 z-10 shadow-sm">
+            <MousePointerClick className="w-3 h-3 text-emerald-400" />
+            <span>{brand.clicksCount} clicks</span>
           </div>
         )}
       </motion.div>
@@ -188,14 +186,14 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
       <AnimatePresence>
         {isHovered && !isMobile && (
           <div
-            className={`absolute z-[80] pointer-events-auto ${
-              isTallBlock
+            className={`absolute z-[90] pointer-events-auto ${
+              isSpaciousBlock
                 ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                 : openUpwards
                 ? "bottom-full mb-3"
                 : "top-full mt-3"
             } ${
-              isTallBlock
+              isSpaciousBlock
                 ? ""
                 : isRightAnchored
                 ? "right-0"

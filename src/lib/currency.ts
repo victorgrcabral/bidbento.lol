@@ -1,4 +1,4 @@
-export type CurrencyCode = "USD" | "BRL" | "EUR";
+export type CurrencyCode = "USD" | "EUR" | "BRL";
 
 export interface CurrencyRate {
   code: CurrencyCode;
@@ -14,17 +14,17 @@ export const SUPPORTED_CURRENCIES: Record<CurrencyCode, CurrencyRate> = {
     rateAgainstUSD: 1.0,
     label: "USD ($)",
   },
-  BRL: {
-    code: "BRL",
-    symbol: "R$",
-    rateAgainstUSD: 5.4, // Standard conversion rate estimate
-    label: "BRL (R$)",
-  },
   EUR: {
     code: "EUR",
     symbol: "€",
     rateAgainstUSD: 0.92,
     label: "EUR (€)",
+  },
+  BRL: {
+    code: "BRL",
+    symbol: "R$",
+    rateAgainstUSD: 5.4, // Standard conversion rate estimate
+    label: "BRL (R$)",
   },
 };
 

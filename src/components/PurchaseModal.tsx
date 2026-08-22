@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { BrandSpace } from "@/types";
-import { CurrencyCode, formatCurrency } from "@/lib/currency";
+import { CurrencyCode, formatCurrency, SUPPORTED_CURRENCIES } from "@/lib/currency";
 import { normalizeDomain, getFaviconUrl } from "@/lib/utils";
 import { parseCustomColor } from "@/lib/colors";
 import { Language, getTranslation } from "@/lib/i18n";
@@ -32,7 +32,9 @@ interface PurchaseModalProps {
   onSuccess: () => void;
 }
 
-const PRESET_AMOUNTS = [5, 15, 30, 50, 100, 250];
+const PRESET_AMOUNTS_USD = [5, 15, 30, 50, 100, 250];
+const PRESET_AMOUNTS_EUR = [5, 15, 30, 50, 100, 250];
+const PRESET_AMOUNTS_BRL = [25, 75, 150, 250, 500, 1000];
 
 const PRESET_COLORS = [
   "#7c3aed", // Violet
@@ -50,7 +52,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   onClose,
   totalPoolAmount,
   existingBrands,
-  currency,
+  currency = "USD",
   language = "en",
   initialCategory = "SaaS",
   onSuccess,
@@ -69,6 +71,15 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
     { key: "Outros", label: t.categories.other },
   ];
 
+  const activePresets = useMemo(() => {
+    if (currency === "BRL") return PRESET_AMOUNTS_BRL;
+    if (currency === "EUR") return PRESET_AMOUNTS_EUR;
+    return PRESET_AMOUNTS_USD;
+  }, [currency]);
+
+  const currencySymbol = SUPPORTED_CURRENCIES[currency]?.symbol || "$";
+  const currencyRate = SUPPORTED_CURRENCIES[currency]?.rateAgainstUSD || 1.0;
+
   const [name, setName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
@@ -82,57 +93,81 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
       setCategory(initialCategory);
     }
   }, [initialCategory, isOpen]);
+
   const [color, setColor] = useState("#7c3aed");
-  const [isCustomColor, setIsCustomColor] = useState(false);
   const [customColorInput, setCustomColorInput] = useState("");
+  const [isCustomColorMode, setIsCustomColorMode] = useState(false);
   const [customColorError, setCustomColorError] = useState<string | null>(null);
-  const [amount, setAmount] = useState<number>(15);
+
+  const [amount, setAmount] = useState<number>(activePresets[1] || 15);
   const [customAmount, setCustomAmount] = useState<string>("");
+
+  useEffect(() => {
+    setAmount(activePresets[1] || 15);
+    setCustomAmount("");
+  }, [currency, activePresets]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto-detect existing brand by domain
   const detectedDomain = useMemo(() => {
-    if (!websiteUrl.trim()) return "";
+    if (!websiteUrl.trim()) return null;
     return normalizeDomain(websiteUrl);
   }, [websiteUrl]);
 
   const existingBrand = useMemo(() => {
     if (!detectedDomain) return null;
-    return existingBrands.find((b) => b.domain === detectedDomain) || null;
+    return existingBrands.find((b) => b.domain === detectedDomain);
   }, [detectedDomain, existingBrands]);
 
+  // Autofill if domain exists
+  useEffect(() => {
+    if (existingBrand) {
+      setName(existingBrand.name);
+      if (existingBrand.logoUrl) setLogoUrl(existingBrand.logoUrl);
+      if (existingBrand.color) setColor(existingBrand.color);
+      if (existingBrand.category) setCategory(existingBrand.category);
+    }
+  }, [existingBrand]);
+
+  // Real-time Treemap Dominance Calculation (normalized in USD for calculation)
   const calculation = useMemo(() => {
-    const enteredAmount = customAmount ? parseFloat(customAmount) || 0 : amount;
-    const existingAmount = existingBrand ? existingBrand.totalAmount : 0;
-    const newBrandTotal = existingAmount + enteredAmount;
-    const newTotalPool = existingBrand
-      ? totalPoolAmount + enteredAmount
-      : totalPoolAmount + enteredAmount;
+    const rawVal = customAmount ? parseFloat(customAmount) || 0 : amount;
+    // Normalize to USD for math percentage calculation
+    const enteredAmountUSD = currency === "USD" ? rawVal : rawVal / currencyRate;
+    const existingAmountUSD = existingBrand?.totalAmount || 0;
+    const newBrandTotalUSD = existingAmountUSD + enteredAmountUSD;
+
+    const newTotalPoolUSD = existingBrand
+      ? totalPoolAmount + enteredAmountUSD
+      : totalPoolAmount + enteredAmountUSD;
 
     const projectedPercentage =
-      newTotalPool > 0
-        ? Number(((newBrandTotal / newTotalPool) * 100).toFixed(1))
+      newTotalPoolUSD > 0
+        ? Number(((newBrandTotalUSD / newTotalPoolUSD) * 100).toFixed(1))
         : 100;
 
     const simulatedList = [
       ...existingBrands.filter((b) => b.domain !== detectedDomain),
-      { totalAmount: newBrandTotal },
+      { totalAmount: newBrandTotalUSD },
     ].sort((a, b) => b.totalAmount - a.totalAmount);
 
     const projectedRank =
-      simulatedList.findIndex((item) => item.totalAmount === newBrandTotal) + 1;
+      simulatedList.findIndex((item) => item.totalAmount === newBrandTotalUSD) + 1;
 
     return {
-      enteredAmount,
-      newBrandTotal,
-      newTotalPool,
+      enteredAmountRaw: rawVal,
+      enteredAmountUSD,
+      newBrandTotalUSD,
+      newTotalPoolUSD,
       projectedPercentage,
       projectedRank: projectedRank > 0 ? projectedRank : 1,
     };
-  }, [amount, customAmount, existingBrand, existingBrands, totalPoolAmount, detectedDomain]);
+  }, [amount, customAmount, existingBrand, existingBrands, totalPoolAmount, detectedDomain, currency, currencyRate]);
 
   const handleCustomColorChange = (value: string) => {
     setCustomColorInput(value);
@@ -141,7 +176,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
       setColor(parsed.hex);
       setCustomColorError(null);
     } else if (value.trim()) {
-      setCustomColorError("Formato inválido. Use HEX (#7c3aed), RGB (rgb(124, 58, 237)) ou CMYK.");
+      setCustomColorError("Invalid format. Use HEX (#7c3aed), RGB (rgb(124, 58, 237)) or CMYK.");
     }
   };
 
@@ -150,7 +185,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage("A imagem deve ter menos de 5MB.");
+      setErrorMessage("Image must be under 5MB.");
       return;
     }
 
@@ -169,7 +204,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
       return;
     }
 
-    if (calculation.enteredAmount < 1.0) {
+    if (calculation.enteredAmountUSD < 1.0) {
       setErrorMessage(t.minAmountError);
       return;
     }
@@ -190,7 +225,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
 
         if (!uploadRes.ok) {
           const err = await uploadRes.json();
-          throw new Error(err.error || "Erro ao fazer upload da imagem.");
+          throw new Error(err.error || "Image upload failed.");
         }
 
         const uploadData = await uploadRes.json();
@@ -207,24 +242,26 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           tagline: tagline.trim() || undefined,
           category,
           color,
-          amount: calculation.enteredAmount,
+          amount: calculation.enteredAmountUSD,
+          currency,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Erro ao processar checkout.");
+        throw new Error(data.error || "Failed to process checkout");
       }
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else if (data.success) {
         onSuccess();
         onClose();
       }
     } catch (err: any) {
-      setErrorMessage(err.message || "Falha na comunicação com o servidor.");
+      console.error(err);
+      setErrorMessage(err.message || "An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
       setIsUploading(false);
@@ -234,63 +271,62 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
+      onClick={onClose}
+    >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 10 }}
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 10 }}
-        className="w-full max-w-lg bg-zinc-950 border border-white/15 rounded-3xl p-6 sm:p-7 shadow-2xl text-white relative my-8"
+        exit={{ opacity: 0, scale: 0.95, y: 15 }}
         onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-xl bg-zinc-950 border border-white/10 rounded-3xl p-5 sm:p-7 shadow-2xl text-white relative max-h-[92vh] overflow-y-auto my-auto"
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Modal Header */}
-        <div className="flex items-center gap-3 mb-2">
-          <div className="p-2.5 rounded-2xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
-            <Zap className="w-6 h-6 fill-violet-400" />
+        <div className="mb-5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="p-1.5 rounded-lg bg-violet-600/20 text-violet-400 border border-violet-500/30">
+              <Zap className="w-4 h-4 fill-violet-400" />
+            </span>
+            <h2 className="text-xl font-bold tracking-tight">{t.modalTitle}</h2>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-white">{t.modalTitle}</h2>
-            <p className="text-xs text-zinc-400">
-              {t.modalDesc}
-            </p>
-          </div>
+          <p className="text-xs text-zinc-400">{t.modalDesc}</p>
         </div>
 
-        {/* Live Projection Box */}
-        <div className="my-5 p-4 rounded-2xl bg-gradient-to-br from-violet-950/50 via-zinc-900/60 to-zinc-950 border border-violet-500/30">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-violet-300 flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4" /> {t.projectionTitle}
+        {/* Real-Time Dominance Projection Card */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-violet-950/40 via-zinc-900 to-zinc-900 border border-violet-500/30 mb-5 relative overflow-hidden">
+          <div className="flex items-center justify-between text-xs text-violet-300 mb-1">
+            <span className="flex items-center gap-1 font-semibold">
+              <TrendingUp className="w-3.5 h-3.5" /> {t.projectionTitle}
             </span>
-            <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono">
+            <span className="font-mono text-zinc-400 bg-zinc-800/80 px-2 py-0.5 rounded-md border border-white/5">
               {t.projectedRank(calculation.projectedRank)}
             </span>
           </div>
 
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-white tracking-tight">
-              ~{calculation.projectedPercentage}%
+            <span className="text-3xl font-black text-white">
+              {calculation.projectedPercentage}%
             </span>
-            <span className="text-xs text-zinc-300">
-              {t.ofTheScreen}
-            </span>
+            <span className="text-xs text-zinc-400">{t.ofTheScreen}</span>
           </div>
 
           {existingBrand && (
-            <p className="text-[11px] text-emerald-400 mt-2 flex items-center gap-1 font-medium">
-              <Check className="w-3.5 h-3.5" />
+            <p className="text-[11px] text-amber-400/90 mt-1 font-medium">
               {t.domainExistsNote(existingBrand.name, formatCurrency(existingBrand.totalAmount, currency))}
             </p>
           )}
         </div>
 
+        {/* Error Alert */}
         {errorMessage && (
           <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -300,13 +336,13 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
 
         {/* Purchase Form */}
         <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
-          {/* Amount Presets */}
+          {/* Amount Presets with Current Currency */}
           <div>
             <label className="block text-zinc-300 font-semibold mb-2">
-              {t.investmentAmount}
+              {t.investmentAmount} ({currency})
             </label>
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2">
-              {PRESET_AMOUNTS.map((val) => (
+              {activePresets.map((val) => (
                 <button
                   type="button"
                   key={val}
@@ -314,28 +350,33 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
                     setAmount(val);
                     setCustomAmount("");
                   }}
-                  className={`py-2 px-3 rounded-xl font-bold font-mono text-center border transition-all ${
+                  className={`py-2 px-2 rounded-xl font-bold font-mono text-center border transition-all cursor-pointer ${
                     amount === val && !customAmount
                       ? "bg-violet-600 border-violet-400 text-white shadow-lg shadow-violet-600/40 scale-105"
                       : "bg-zinc-900 border-white/10 text-zinc-300 hover:bg-zinc-800"
                   }`}
                 >
-                  ${val}
+                  {currencySymbol}{val}
                 </button>
               ))}
             </div>
-            <input
-              type="number"
-              min="1"
-              step="any"
-              placeholder={t.orCustomAmount}
-              value={customAmount}
-              onChange={(e) => {
-                setCustomAmount(e.target.value);
-                setAmount(0);
-              }}
-              className="w-full bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 font-mono text-xs"
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 font-bold font-mono text-xs">
+                {currencySymbol}
+              </span>
+              <input
+                type="number"
+                min="1"
+                step="any"
+                placeholder={t.orCustomAmount}
+                value={customAmount}
+                onChange={(e) => {
+                  setCustomAmount(e.target.value);
+                  setAmount(0);
+                }}
+                className="w-full pl-8 pr-3 py-2 bg-zinc-900/90 border border-white/10 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 font-mono text-xs"
+              />
+            </div>
           </div>
 
           {/* Brand Name & URL */}
@@ -421,7 +462,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-semibold shrink-0"
+                className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 cursor-pointer"
               >
                 <Upload className="w-3.5 h-3.5 text-violet-400" />
                 <span>{uploadedFile ? uploadedFile.name : t.chooseFile}</span>
@@ -448,7 +489,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
                       logoUrl ||
                       getFaviconUrl(detectedDomain || "google.com")
                     }
-                    alt="Preview"
+                    alt="Logo preview"
                     className="w-full h-full object-contain"
                   />
                 </div>
@@ -456,7 +497,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
             </div>
           </div>
 
-          {/* Brand Color & Custom Color Picker */}
+          {/* Brand Highlight Color */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
@@ -464,65 +505,129 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
               </label>
               <button
                 type="button"
-                onClick={() => setIsCustomColor(!isCustomColor)}
-                className="text-[11px] text-violet-400 hover:text-violet-300 font-medium underline"
+                onClick={() => setIsCustomColorMode(!isCustomColorMode)}
+                className="text-[11px] text-violet-400 hover:text-violet-300 underline font-medium cursor-pointer"
               >
-                {isCustomColor ? t.paletteToggle : t.customColorToggle}
+                {isCustomColorMode ? t.paletteToggle : t.customColorToggle}
               </button>
             </div>
 
-            {!isCustomColor ? (
-              <div className="flex items-center gap-2">
-                {PRESET_COLORS.map((c) => (
-                  <button
-                    type="button"
-                    key={c}
-                    onClick={() => setColor(c)}
-                    className={`w-7 h-7 rounded-full border-2 transition-transform ${
-                      color === c ? "scale-125 border-white" : "border-transparent"
-                    }`}
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-1.5">
+            {isCustomColorMode ? (
+              <div>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    placeholder="Ex: #7c3aed, rgb(124, 58, 237), cmyk(48, 76, 0, 7)"
-                    value={customColorInput}
-                    onChange={(e) => handleCustomColorChange(e.target.value)}
-                    className="flex-1 bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs font-mono"
-                  />
                   <div
                     className="w-8 h-8 rounded-xl border border-white/20 shrink-0"
                     style={{ backgroundColor: color }}
                   />
+                  <input
+                    type="text"
+                    placeholder="e.g. #00ffff, rgb(0, 255, 255), cmyk(100, 0, 0, 0)"
+                    value={customColorInput}
+                    onChange={(e) => handleCustomColorChange(e.target.value)}
+                    className="flex-1 bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 font-mono text-xs"
+                  />
                 </div>
                 {customColorError && (
-                  <p className="text-[11px] text-red-400">{customColorError}</p>
+                  <p className="text-[11px] text-rose-400 mt-1">{customColorError}</p>
                 )}
               </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {PRESET_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => {
+                      setColor(c);
+                      setCustomColorInput("");
+                      setCustomColorError(null);
+                    }}
+                    style={{ backgroundColor: c }}
+                    className={`w-7 h-7 rounded-xl border transition-transform cursor-pointer ${
+                      color === c
+                        ? "border-white scale-110 shadow-lg shadow-white/20 ring-2 ring-violet-500"
+                        : "border-white/10 hover:scale-105"
+                    }`}
+                  />
+                ))}
+              </div>
             )}
+          </div>
+
+          {/* Live Preview Card */}
+          <div className="pt-2 border-t border-white/10">
+            <span className="text-[11px] text-zinc-400 uppercase font-mono tracking-wider block mb-2 font-bold">
+              {t.cardPreviewTitle}
+            </span>
+            <div
+              className="p-3.5 rounded-2xl bg-zinc-900 border border-white/10 flex items-center gap-3 relative overflow-hidden"
+              style={{ borderColor: `${color}60` }}
+            >
+              <div
+                className="w-11 h-11 rounded-xl bg-zinc-950 border border-white/10 p-1.5 flex items-center justify-center shrink-0 overflow-hidden"
+                style={{ borderColor: `${color}40` }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={
+                    uploadedFilePreview ||
+                    logoUrl ||
+                    (detectedDomain ? getFaviconUrl(detectedDomain) : "/logo.png")
+                  }
+                  alt="Preview"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/logo.png";
+                  }}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-bold text-white text-sm truncate">
+                    {name || "Your Brand"}
+                  </h4>
+                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded">
+                    {category}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 font-mono truncate">
+                  {detectedDomain || "yourbrand.com"}
+                </p>
+                {tagline && (
+                  <p className="text-[11px] text-zinc-300 italic truncate mt-0.5">
+                    &ldquo;{tagline}&rdquo;
+                  </p>
+                )}
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-xs font-bold text-violet-400 block font-mono">
+                  {calculation.projectedPercentage}%
+                </span>
+                <span className="text-[10px] text-emerald-400 font-mono font-semibold">
+                  Rank #{calculation.projectedRank}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={isSubmitting || isUploading}
-            className="w-full mt-4 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-violet-600/40 border border-violet-400/30 flex items-center justify-center gap-2 transition-transform active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-violet-600/40 border border-violet-400/40 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98 cursor-pointer mt-4"
           >
             {isSubmitting || isUploading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{isUploading ? t.uploadingImage : t.processing}</span>
+                <span>
+                  {isUploading ? t.uploadingImage : t.processing}
+                </span>
               </>
             ) : (
               <>
                 <Zap className="w-4 h-4 fill-white" />
                 <span>
-                  {t.payAndClaim(formatCurrency(calculation.enteredAmount, currency))}
+                  {t.payAndClaim(formatCurrency(calculation.enteredAmountUSD, currency))}
                 </span>
               </>
             )}
