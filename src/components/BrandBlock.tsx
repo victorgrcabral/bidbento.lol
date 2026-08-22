@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { BrandSpace } from "@/types";
 import { CurrencyCode } from "@/lib/currency";
+import { Language } from "@/lib/i18n";
 import { getFaviconUrl } from "@/lib/utils";
 import { BrandHoverCard } from "./BrandHoverCard";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,6 +12,7 @@ import { Trophy, MousePointerClick } from "lucide-react";
 interface BrandBlockProps {
   brand: BrandSpace;
   currency: CurrencyCode;
+  language?: Language;
   onBoost: (brand: BrandSpace) => void;
   onSelectMobileBrand: (brand: BrandSpace) => void;
   isMobile: boolean;
@@ -19,6 +21,7 @@ interface BrandBlockProps {
 export const BrandBlock: React.FC<BrandBlockProps> = ({
   brand,
   currency,
+  language = "en",
   onBoost,
   onSelectMobileBrand,
   isMobile,
@@ -58,65 +61,40 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
 
   const brandColor = brand.color || "#7c3aed";
 
-  // Robust viewport-safe positioning for the popover
-  // If the block is tall (h > 35%), center the popover inside to prevent overflowing screen edges
+  // Dynamic popover position:
   const isTallBlock = rect.h > 35;
   const isBottomHalf = rect.y > 50;
-  const isRightSide = rect.x > 60;
-  const isLeftSide = rect.x < 35;
-
-  let popupPositionClasses = "absolute z-[60] pointer-events-auto ";
-  if (isTallBlock) {
-    // Center inside the tall block
-    popupPositionClasses += "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ";
-  } else if (isBottomHalf) {
-    // Open UPWARDS above the short block
-    popupPositionClasses += "bottom-full mb-3 ";
-    if (isRightSide) popupPositionClasses += "right-0 ";
-    else if (isLeftSide) popupPositionClasses += "left-0 ";
-    else popupPositionClasses += "left-1/2 -translate-x-1/2 ";
-  } else {
-    // Open DOWNWARDS below the short block
-    popupPositionClasses += "top-full mt-3 ";
-    if (isRightSide) popupPositionClasses += "right-0 ";
-    else if (isLeftSide) popupPositionClasses += "left-0 ";
-    else popupPositionClasses += "left-1/2 -translate-x-1/2 ";
-  }
+  const isRightSide = rect.x > 50;
 
   return (
-    <motion.div
-      layout
-      transition={{
-        layout: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
-      }}
+    <div
+      className="absolute p-0.5 select-none"
       style={{
-        position: "absolute",
         left: `${rect.x}%`,
         top: `${rect.y}%`,
         width: `${rect.w}%`,
         height: `${rect.h}%`,
-        zIndex: isHovered ? 45 : 10,
+        zIndex: isHovered ? 50 : 1,
       }}
-      className="p-1 box-border select-none"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div
+      <motion.div
+        layout
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
         onClick={handleClick}
         style={{
           borderColor: isHovered
-            ? `${brandColor}`
-            : brand.rank === 1
-            ? "#eab30866"
-            : `${brandColor}30`,
+            ? brandColor
+            : brand.color
+            ? `${brand.color}35`
+            : "rgba(255, 255, 255, 0.08)",
           boxShadow: isHovered
-            ? `0 0 35px ${brandColor}40, inset 0 0 25px ${brandColor}20`
-            : brand.rank === 1
-            ? "0 0 25px rgba(234, 179, 8, 0.15)"
-            : "none",
+            ? `0 0 30px ${brandColor}40, inset 0 0 15px ${brandColor}20`
+            : undefined,
         }}
-        className={`w-full h-full rounded-2xl relative overflow-hidden flex flex-col items-center justify-center cursor-pointer transition-all duration-300 border bg-gradient-to-br from-zinc-950/90 via-zinc-900/80 to-zinc-950/95 backdrop-blur-md group ${
-          isHovered ? "scale-[0.99]" : ""
+        className={`w-full h-full rounded-2xl relative overflow-hidden flex flex-col items-center justify-center cursor-pointer transition-all duration-200 border bg-gradient-to-br from-zinc-950/90 to-black/95 group ${
+          isHovered ? "ring-2 ring-violet-500/50 scale-[1.01]" : ""
         }`}
       >
         {/* Background Ambient Glow */}
@@ -180,51 +158,57 @@ export const BrandBlock: React.FC<BrandBlockProps> = ({
               <h4 className="font-bold text-white tracking-tight leading-none truncate max-w-full px-2 text-sm sm:text-base">
                 {brand.name}
               </h4>
-              {isHuge && brand.tagline && (
-                <p className="text-[11px] text-zinc-400 mt-1 line-clamp-2 max-w-xs px-2 font-normal leading-tight">
-                  {brand.tagline}
-                </p>
-              )}
+              <p className="text-[11px] text-zinc-400 font-mono mt-0.5 truncate max-w-full px-2">
+                {brand.domain}
+              </p>
             </>
           )}
 
-          {isMedium && !isLarge && (
-            <span className="text-[11px] font-semibold text-zinc-200 truncate max-w-full px-1">
-              {brand.name}
-            </span>
+          {isHuge && brand.tagline && (
+            <p className="text-xs text-zinc-300 mt-2 line-clamp-2 px-3 font-normal max-w-sm leading-snug opacity-90">
+              &ldquo;{brand.tagline}&rdquo;
+            </p>
           )}
         </div>
 
-        {/* Bottom stats badge on large blocks */}
-        {isLarge && (
-          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] text-zinc-400 px-1 pointer-events-none">
-            <span className="truncate font-mono text-[9px] text-zinc-500">
-              {brand.domain}
-            </span>
-            <span className="flex items-center gap-1 text-emerald-400 font-medium text-[10px]">
-              <MousePointerClick className="w-2.5 h-2.5" />
-              {brand.clicksCount}
-            </span>
+        {/* Subtle click indicator on hover */}
+        {isHovered && (
+          <div className="absolute bottom-2 right-2 text-[10px] text-zinc-400 font-mono flex items-center gap-1 bg-black/80 px-2 py-0.5 rounded-full border border-white/10 z-10">
+            <MousePointerClick className="w-3 h-3 text-violet-400" />
+            <span className="hidden sm:inline">bidbento.lol/api/click</span>
           </div>
         )}
-      </div>
+      </motion.div>
 
-      {/* Desktop Hover Card with Viewport-Safe Positioning */}
+      {/* Desktop Rich Hover Popover Card */}
       <AnimatePresence>
-        {!isMobile && isHovered && (
+        {isHovered && !isMobile && (
           <div
-            className={popupPositionClasses}
+            className={`absolute z-[60] pointer-events-auto ${
+              isTallBlock
+                ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                : isBottomHalf
+                ? "bottom-full mb-3"
+                : "top-full mt-3"
+            } ${
+              isTallBlock
+                ? ""
+                : isRightSide
+                ? "right-0"
+                : "left-0"
+            }`}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
             <BrandHoverCard
               brand={brand}
               currency={currency}
+              language={language}
               onBoost={onBoost}
             />
           </div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };

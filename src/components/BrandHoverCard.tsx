@@ -4,12 +4,14 @@ import React from "react";
 import { BrandSpace } from "@/types";
 import { formatCurrency, CurrencyCode } from "@/lib/currency";
 import { formatTimeAgo, getFaviconUrl } from "@/lib/utils";
+import { Language, getTranslation } from "@/lib/i18n";
 import { ExternalLink, Zap, MousePointerClick, Clock, TrendingUp, Trophy, X, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface BrandHoverCardProps {
   brand: BrandSpace;
   currency: CurrencyCode;
+  language?: Language;
   onClose?: () => void;
   onBoost: (brand: BrandSpace) => void;
   isMobileModal?: boolean;
@@ -18,10 +20,12 @@ interface BrandHoverCardProps {
 export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
   brand,
   currency,
+  language = "en",
   onClose,
   onBoost,
   isMobileModal = false,
 }) => {
+  const t = getTranslation(language);
   const logo = brand.logoUrl || getFaviconUrl(brand.domain);
   const clickRedirectUrl = `/api/click/${brand.id}`;
 
@@ -66,7 +70,7 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
               </h3>
               {brand.rank === 1 && (
                 <span className="flex items-center gap-1 text-[9px] uppercase font-black tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded-md shrink-0">
-                  <Trophy className="w-2.5 h-2.5 text-amber-400" /> Líder
+                  <Trophy className="w-2.5 h-2.5 text-amber-400" /> {t.leaderBadge}
                 </span>
               )}
             </div>
@@ -104,7 +108,7 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
         <div className="bg-zinc-900/90 border border-white/10 p-2.5 rounded-xl flex flex-col">
           <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] mb-1">
             <TrendingUp className="w-3.5 h-3.5 text-violet-400" />
-            <span>Fatia na Página</span>
+            <span>{t.pageShare}</span>
           </div>
           <div className="font-bold text-base text-violet-300">
             {brand.percentage}%
@@ -114,7 +118,7 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
         <div className="bg-zinc-900/90 border border-white/10 p-2.5 rounded-xl flex flex-col">
           <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] mb-1">
             <MousePointerClick className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Cliques Reais</span>
+            <span>{t.realClicks}</span>
           </div>
           <div className="font-bold text-base text-emerald-400">
             {brand.clicksCount.toLocaleString()}
@@ -124,7 +128,7 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
         <div className="bg-zinc-900/90 border border-white/10 p-2.5 rounded-xl flex flex-col">
           <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] mb-1">
             <Trophy className="w-3.5 h-3.5 text-amber-400" />
-            <span>Total Investido</span>
+            <span>{t.totalInvested}</span>
           </div>
           <div className="font-bold text-xs sm:text-sm text-zinc-100 font-mono truncate">
             {formatCurrency(brand.totalAmount, currency)}
@@ -134,10 +138,10 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
         <div className="bg-zinc-900/90 border border-white/10 p-2.5 rounded-xl flex flex-col">
           <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] mb-1">
             <Clock className="w-3.5 h-3.5 text-sky-400" />
-            <span>Último Aporte</span>
+            <span>{t.lastBoost}</span>
           </div>
           <div className="font-medium text-xs text-zinc-200 truncate">
-            {formatTimeAgo(brand.lastPaymentAt)}
+            {formatTimeAgo(brand.lastPaymentAt, language)}
           </div>
         </div>
       </div>
@@ -150,7 +154,7 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
           rel="noopener noreferrer"
           className="flex-1 flex items-center justify-center gap-2 bg-white text-zinc-950 font-semibold text-xs py-2.5 px-3 rounded-xl hover:bg-zinc-200 transition-all shadow-md active:scale-95"
         >
-          <span>Visitar Website</span>
+          <span>{t.visitWebsite}</span>
           <ExternalLink className="w-3.5 h-3.5" />
         </a>
 
@@ -162,7 +166,7 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
           className="flex items-center justify-center gap-1.5 bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs py-2.5 px-3.5 rounded-xl border border-violet-400/30 transition-all shadow-lg shadow-violet-600/30 active:scale-95"
         >
           <Zap className="w-3.5 h-3.5 fill-white text-white" />
-          <span>Boost</span>
+          <span>{t.boostBrand}</span>
         </button>
       </div>
     </motion.div>

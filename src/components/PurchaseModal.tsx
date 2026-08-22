@@ -5,6 +5,7 @@ import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency } from "@/lib/currency";
 import { normalizeDomain, getFaviconUrl } from "@/lib/utils";
 import { parseCustomColor } from "@/lib/colors";
+import { Language, getTranslation } from "@/lib/i18n";
 import {
   X,
   Zap,
@@ -26,6 +27,7 @@ interface PurchaseModalProps {
   totalPoolAmount: number;
   existingBrands: BrandSpace[];
   currency: CurrencyCode;
+  language?: Language;
   onSuccess: () => void;
 }
 
@@ -42,26 +44,29 @@ const PRESET_COLORS = [
   "#000000", // Black
 ];
 
-const CATEGORIES = [
-  "SaaS",
-  "Developer Tools",
-  "IA / Machine Learning",
-  "Design & UI",
-  "Fintech",
-  "Crypto / Web3",
-  "E-commerce",
-  "Produtividade",
-  "Outros",
-];
-
 export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   isOpen,
   onClose,
   totalPoolAmount,
   existingBrands,
   currency,
+  language = "en",
   onSuccess,
 }) => {
+  const t = getTranslation(language);
+
+  const categories = [
+    { key: "SaaS", label: t.categories.saas },
+    { key: "Developer Tools", label: t.categories.devTools },
+    { key: "IA / Machine Learning", label: t.categories.ai },
+    { key: "Design & UI", label: t.categories.design },
+    { key: "Fintech", label: t.categories.fintech },
+    { key: "Crypto / Web3", label: t.categories.crypto },
+    { key: "E-commerce", label: t.categories.ecommerce },
+    { key: "Produtividade", label: t.categories.productivity },
+    { key: "Outros", label: t.categories.other },
+  ];
+
   const [name, setName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
@@ -71,17 +76,18 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   const [category, setCategory] = useState("SaaS");
   const [color, setColor] = useState("#7c3aed");
   const [isCustomColor, setIsCustomColor] = useState(false);
-  const [customColorInput, setCustomColorInput] = useState("#7c3aed");
-  const [amount, setAmount] = useState<number>(30);
+  const [customColorInput, setCustomColorInput] = useState("");
+  const [customColorError, setCustomColorError] = useState<string | null>(null);
+  const [amount, setAmount] = useState<number>(15);
+  const [customAmount, setCustomAmount] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto detect domain and existing brand investment
   const detectedDomain = useMemo(() => {
-    if (!websiteUrl || websiteUrl.trim().length < 3) return "";
+    if (!websiteUrl.trim()) return "";
     return normalizeDomain(websiteUrl);
   }, [websiteUrl]);
 
@@ -90,98 +96,73 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
     return existingBrands.find((b) => b.domain === detectedDomain) || null;
   }, [detectedDomain, existingBrands]);
 
-  // Real-time predictive calculation
   const calculation = useMemo(() => {
-    const validAmount = Math.max(1, amount || 0);
+    const enteredAmount = customAmount ? parseFloat(customAmount) || 0 : amount;
     const existingAmount = existingBrand ? existingBrand.totalAmount : 0;
-    const finalBrandAmount = existingAmount + validAmount;
-    const newTotalPool = totalPoolAmount + validAmount;
+    const newBrandTotal = existingAmount + enteredAmount;
+    const newTotalPool = existingBrand
+      ? totalPoolAmount + enteredAmount
+      : totalPoolAmount + enteredAmount;
 
     const projectedPercentage =
       newTotalPool > 0
-        ? Number(((finalBrandAmount / newTotalPool) * 100).toFixed(1))
+        ? Number(((newBrandTotal / newTotalPool) * 100).toFixed(1))
         : 100;
 
-    const simulatedBrands = existingBrands.map((b) => {
-      if (b.domain === detectedDomain) {
-        return { ...b, totalAmount: finalBrandAmount };
-      }
-      return b;
-    });
+    const simulatedList = [
+      ...existingBrands.filter((b) => b.domain !== detectedDomain),
+      { totalAmount: newBrandTotal },
+    ].sort((a, b) => b.totalAmount - a.totalAmount);
 
-    if (!existingBrand && detectedDomain) {
-      simulatedBrands.push({
-        id: "temp",
-        name: name || detectedDomain,
-        domain: detectedDomain,
-        websiteUrl,
-        totalAmount: validAmount,
-        clicksCount: 0,
-        isActive: true,
-        percentage: projectedPercentage,
-        rank: 999,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastPaymentAt: new Date(),
-      });
-    }
-
-    simulatedBrands.sort((a, b) => b.totalAmount - a.totalAmount);
     const projectedRank =
-      simulatedBrands.findIndex((b) => b.domain === detectedDomain) + 1;
+      simulatedList.findIndex((item) => item.totalAmount === newBrandTotal) + 1;
 
     return {
+      enteredAmount,
+      newBrandTotal,
+      newTotalPool,
       projectedPercentage,
       projectedRank: projectedRank > 0 ? projectedRank : 1,
-      finalBrandAmount,
     };
-  }, [amount, existingBrand, totalPoolAmount, existingBrands, detectedDomain, name, websiteUrl]);
+  }, [amount, customAmount, existingBrand, existingBrands, totalPoolAmount, detectedDomain]);
 
-  // Handle custom color input changes
-  const handleCustomColorChange = (val: string) => {
-    setCustomColorInput(val);
-    const parsed = parseCustomColor(val);
+  const handleCustomColorChange = (value: string) => {
+    setCustomColorInput(value);
+    const parsed = parseCustomColor(value);
     if (parsed.isValid) {
       setColor(parsed.hex);
+      setCustomColorError(null);
+    } else if (value.trim()) {
+      setCustomColorError("Formato inválido. Use HEX (#7c3aed), RGB (rgb(124, 58, 237)) ou CMYK.");
     }
   };
 
-  // Handle File Selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 4 * 1024 * 1024) {
-      setErrorMessage("A imagem deve ter no máximo 4MB.");
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage("A imagem deve ter menos de 5MB.");
       return;
     }
 
     setUploadedFile(file);
-    const objectUrl = URL.createObjectURL(file);
-    setUploadedFilePreview(objectUrl);
+    const previewUrl = URL.createObjectURL(file);
+    setUploadedFilePreview(previewUrl);
+    setLogoUrl("");
   };
-
-  const previewLogo =
-    uploadedFilePreview ||
-    (logoUrl && logoUrl.trim().length > 0 ? logoUrl.trim() : null) ||
-    (detectedDomain ? getFaviconUrl(detectedDomain) : null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
-    if (!name.trim()) {
-      setErrorMessage("Por favor, digite o nome da sua marca ou SaaS.");
+    if (!name.trim() || !websiteUrl.trim()) {
+      setErrorMessage(t.requiredFieldsError);
       return;
     }
 
-    if (!websiteUrl.trim()) {
-      setErrorMessage("Por favor, insira a URL do seu website.");
-      return;
-    }
-
-    if (!amount || amount < 1.0) {
-      setErrorMessage("O valor mínimo é de $1.00 USD.");
+    if (calculation.enteredAmount < 1.0) {
+      setErrorMessage(t.minAmountError);
       return;
     }
 
@@ -189,7 +170,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
       setIsSubmitting(true);
       let finalLogoUrl = logoUrl.trim();
 
-      // If user uploaded a file, upload it first to /api/upload
       if (uploadedFile) {
         setIsUploading(true);
         const formData = new FormData();
@@ -219,7 +199,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           tagline: tagline.trim() || undefined,
           category,
           color,
-          amount,
+          amount: calculation.enteredAmount,
         }),
       });
 
@@ -248,28 +228,29 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, scale: 0.95, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="w-full max-w-xl bg-zinc-950 border border-white/15 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-violet-950/30 text-white relative my-8"
+        exit={{ opacity: 0, scale: 0.95, y: 10 }}
+        className="w-full max-w-lg bg-zinc-950 border border-white/15 rounded-3xl p-6 sm:p-7 shadow-2xl text-white relative my-8"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+          className="absolute top-5 right-5 p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
-        {/* Modal Title */}
-        <div className="flex items-center gap-3 mb-1">
+        {/* Modal Header */}
+        <div className="flex items-center gap-3 mb-2">
           <div className="p-2.5 rounded-2xl bg-violet-600/20 text-violet-400 border border-violet-500/30">
-            <Zap className="w-5 h-5 fill-violet-400" />
+            <Zap className="w-6 h-6 fill-violet-400" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Comprar Espaço na Tela</h2>
+            <h2 className="text-xl font-bold text-white">{t.modalTitle}</h2>
             <p className="text-xs text-zinc-400">
-              Dispute a dominância visual e receba tráfego direto para o seu projeto.
+              {t.modalDesc}
             </p>
           </div>
         </div>
@@ -278,10 +259,10 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
         <div className="my-5 p-4 rounded-2xl bg-gradient-to-br from-violet-950/50 via-zinc-900/60 to-zinc-950 border border-violet-500/30">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-violet-300 flex items-center gap-1.5">
-              <TrendingUp className="w-4 h-4" /> Projeção de Dominância em Tempo Real
+              <TrendingUp className="w-4 h-4" /> {t.projectionTitle}
             </span>
             <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono">
-              Posição #{calculation.projectedRank}
+              {t.projectedRank(calculation.projectedRank)}
             </span>
           </div>
 
@@ -290,14 +271,14 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
               ~{calculation.projectedPercentage}%
             </span>
             <span className="text-xs text-zinc-300">
-              de toda a área útil na tela do BidBento.lol!
+              {t.ofTheScreen}
             </span>
           </div>
 
           {existingBrand && (
             <p className="text-[11px] text-emerald-400 mt-2 flex items-center gap-1 font-medium">
               <Check className="w-3.5 h-3.5" />
-              Domínio já existente ({existingBrand.name}). O valor será somado aos seus {formatCurrency(existingBrand.totalAmount, currency)}!
+              {t.domainExistsNote(existingBrand.name, formatCurrency(existingBrand.totalAmount, currency))}
             </p>
           )}
         </div>
@@ -309,22 +290,25 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Amount Selector */}
+        {/* Purchase Form */}
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
+          {/* Amount Presets */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-300 mb-2">
-              Valor do Investimento ($ USD)
+            <label className="block text-zinc-300 font-semibold mb-2">
+              {t.investmentAmount}
             </label>
-            <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mb-2">
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-2">
               {PRESET_AMOUNTS.map((val) => (
                 <button
-                  key={val}
                   type="button"
-                  onClick={() => setAmount(val)}
-                  className={`py-2 text-xs font-bold rounded-xl border transition-all ${
-                    amount === val
-                      ? "bg-violet-600 border-violet-400 text-white shadow-md shadow-violet-600/40"
+                  key={val}
+                  onClick={() => {
+                    setAmount(val);
+                    setCustomAmount("");
+                  }}
+                  className={`py-2 px-3 rounded-xl font-bold font-mono text-center border transition-all ${
+                    amount === val && !customAmount
+                      ? "bg-violet-600 border-violet-400 text-white shadow-lg shadow-violet-600/40 scale-105"
                       : "bg-zinc-900 border-white/10 text-zinc-300 hover:bg-zinc-800"
                   }`}
                 >
@@ -332,198 +316,185 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
                 </button>
               ))}
             </div>
-
-            <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-sm">
-                $
-              </span>
-              <input
-                type="number"
-                min="1"
-                step="1"
-                value={amount || ""}
-                onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                placeholder="Ou digite outro valor..."
-                className="w-full pl-8 pr-4 py-2.5 bg-zinc-900/90 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500 transition-colors font-mono"
-              />
-            </div>
+            <input
+              type="number"
+              min="1"
+              step="any"
+              placeholder={t.orCustomAmount}
+              value={customAmount}
+              onChange={(e) => {
+                setCustomAmount(e.target.value);
+                setAmount(0);
+              }}
+              className="w-full bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 font-mono text-xs"
+            />
           </div>
 
-          {/* Name & Website */}
+          {/* Brand Name & URL */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Nome da Marca / SaaS *
+              <label className="block text-zinc-300 font-semibold mb-1">
+                {t.brandName}
               </label>
               <input
                 type="text"
                 required
+                placeholder={t.brandNamePlaceholder}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Ex: Supabase, Linear..."
-                className="w-full px-3.5 py-2.5 bg-zinc-900/90 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500 transition-colors"
+                className="w-full bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                URL do Website / Destino *
+              <label className="block text-zinc-300 font-semibold mb-1">
+                {t.websiteUrl}
               </label>
-              <input
-                type="text"
-                required
-                value={websiteUrl}
-                onChange={(e) => setWebsiteUrl(e.target.value)}
-                placeholder="Ex: https://meusaas.com"
-                className="w-full px-3.5 py-2.5 bg-zinc-900/90 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500 transition-colors"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  required
+                  placeholder={t.websiteUrlPlaceholder}
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  className="w-full bg-zinc-900/90 border border-white/10 rounded-xl pl-8 pr-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs font-mono"
+                />
+                <Globe className="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              </div>
             </div>
           </div>
 
           {/* Category & Tagline */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Setor / Categoria *
+              <label className="block text-zinc-300 font-semibold mb-1 flex items-center gap-1">
+                <Tag className="w-3 h-3 text-violet-400" /> {t.categoryLabel}
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-zinc-900/90 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500 transition-colors"
+                className="w-full bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-violet-500"
               >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat} className="bg-zinc-900 text-white">
-                    {cat}
+                {categories.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
                   </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                Slogan / Descrição Curta
+              <label className="block text-zinc-300 font-semibold mb-1">
+                {t.taglineLabel}
               </label>
               <input
                 type="text"
-                maxLength={80}
+                placeholder={t.taglinePlaceholder}
                 value={tagline}
                 onChange={(e) => setTagline(e.target.value)}
-                placeholder="Ex: The Firebase Alternative"
-                className="w-full px-3.5 py-2.5 bg-zinc-900/90 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500 transition-colors"
+                className="w-full bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs"
               />
             </div>
           </div>
 
-          {/* Logo File Upload OR URL */}
+          {/* Logo Upload & URL */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-              Logotipo da Marca (Upload de Arquivo ou URL)
+            <label className="block text-zinc-300 font-semibold mb-1 flex items-center gap-1.5">
+              <ImageIcon className="w-3.5 h-3.5 text-violet-400" /> {t.logoLabel}
             </label>
-            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-              {/* File Upload Button */}
-              <div
+            <div className="flex gap-2 items-center">
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <button
+                type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full sm:w-auto flex-1 cursor-pointer flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-900/90 border border-dashed border-white/20 hover:border-violet-500/50 rounded-xl text-xs text-zinc-300 hover:text-white transition-all"
+                className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-semibold shrink-0"
               >
-                <Upload className="w-4 h-4 text-violet-400 shrink-0" />
-                <span className="truncate">
-                  {uploadedFile ? uploadedFile.name : "Escolher arquivo (PNG, JPEG, SVG...)"}
-                </span>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/png, image/jpeg, image/webp, image/svg+xml, image/gif"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-              </div>
+                <Upload className="w-3.5 h-3.5 text-violet-400" />
+                <span>{uploadedFile ? uploadedFile.name : t.chooseFile}</span>
+              </button>
 
-              {/* URL fallback */}
               <input
                 type="url"
+                placeholder={t.orLogoUrl}
                 value={logoUrl}
                 onChange={(e) => {
                   setLogoUrl(e.target.value);
                   setUploadedFile(null);
                   setUploadedFilePreview(null);
                 }}
-                placeholder="Ou cole a URL direta..."
-                className="w-full sm:w-48 px-3.5 py-2.5 bg-zinc-900/90 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 transition-colors"
+                className="flex-1 bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs"
               />
 
-              {/* Logo Preview */}
-              {previewLogo && (
-                <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-white/15 p-1.5 flex items-center justify-center shrink-0 shadow-md">
+              {(uploadedFilePreview || logoUrl || detectedDomain) && (
+                <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 p-1 flex items-center justify-center shrink-0 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={previewLogo}
-                    alt="Logo preview"
+                    src={
+                      uploadedFilePreview ||
+                      logoUrl ||
+                      getFaviconUrl(detectedDomain || "google.com")
+                    }
+                    alt="Preview"
                     className="w-full h-full object-contain"
-                    onError={(e) => {
-                      (e.target as HTMLElement).style.display = "none";
-                    }}
                   />
                 </div>
               )}
             </div>
           </div>
 
-          {/* Custom Brand Color (Presets + Custom HEX / RGB / CMYK) */}
+          {/* Brand Color & Custom Color Picker */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-semibold text-zinc-300">
-                Cor de Destaque da Marca
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-zinc-300 font-semibold flex items-center gap-1.5">
+                <Palette className="w-3.5 h-3.5 text-violet-400" /> {t.brandColorLabel}
               </label>
               <button
                 type="button"
                 onClick={() => setIsCustomColor(!isCustomColor)}
-                className="text-xs text-violet-400 hover:text-violet-300 font-medium flex items-center gap-1"
+                className="text-[11px] text-violet-400 hover:text-violet-300 font-medium underline"
               >
-                <Palette className="w-3.5 h-3.5" />
-                {isCustomColor ? "Usar Paleta Padrão" : "Cor Personalizada (HEX/RGB/CMYK)"}
+                {isCustomColor ? t.paletteToggle : t.customColorToggle}
               </button>
             </div>
 
             {!isCustomColor ? (
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
                 {PRESET_COLORS.map((c) => (
                   <button
-                    key={c}
                     type="button"
+                    key={c}
                     onClick={() => setColor(c)}
-                    style={{ backgroundColor: c }}
-                    className={`w-7 h-7 rounded-full border-2 transition-transform flex items-center justify-center ${
-                      color === c
-                        ? "border-white scale-110 shadow-lg"
-                        : "border-transparent opacity-80 hover:opacity-100"
+                    className={`w-7 h-7 rounded-full border-2 transition-transform ${
+                      color === c ? "scale-125 border-white" : "border-transparent"
                     }`}
-                  >
-                    {color === c && <Check className="w-3.5 h-3.5 text-white filter drop-shadow" />}
-                  </button>
+                    style={{ backgroundColor: c }}
+                  />
                 ))}
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={color.startsWith("#") && color.length === 7 ? color : "#7c3aed"}
-                  onChange={(e) => {
-                    setColor(e.target.value);
-                    setCustomColorInput(e.target.value);
-                  }}
-                  className="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-0"
-                />
-                <input
-                  type="text"
-                  value={customColorInput}
-                  onChange={(e) => handleCustomColorChange(e.target.value)}
-                  placeholder="Ex: #FF0055, rgb(255,0,85) ou cmyk(0,100,67,0)"
-                  className="flex-1 px-3.5 py-2.5 bg-zinc-900/90 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
-                />
-                <div
-                  className="w-10 h-10 rounded-xl border border-white/20 shadow-inner shrink-0"
-                  style={{ backgroundColor: color }}
-                />
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Ex: #7c3aed, rgb(124, 58, 237), cmyk(48, 76, 0, 7)"
+                    value={customColorInput}
+                    onChange={(e) => handleCustomColorChange(e.target.value)}
+                    className="flex-1 bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs font-mono"
+                  />
+                  <div
+                    className="w-8 h-8 rounded-xl border border-white/20 shrink-0"
+                    style={{ backgroundColor: color }}
+                  />
+                </div>
+                {customColorError && (
+                  <p className="text-[11px] text-red-400">{customColorError}</p>
+                )}
               </div>
             )}
           </div>
@@ -532,17 +503,19 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           <button
             type="submit"
             disabled={isSubmitting || isUploading}
-            className="w-full mt-3 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-violet-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98"
+            className="w-full mt-4 bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-3.5 px-4 rounded-2xl shadow-xl shadow-violet-600/40 border border-violet-400/30 flex items-center justify-center gap-2 transition-transform active:scale-[0.98] disabled:opacity-50"
           >
             {isSubmitting || isUploading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>{isUploading ? "Enviando imagem..." : "Processando..."}</span>
+                <span>{isUploading ? t.uploadingImage : t.processing}</span>
               </>
             ) : (
               <>
                 <Zap className="w-4 h-4 fill-white" />
-                <span>Garantir Espaço por {formatCurrency(amount, currency)}</span>
+                <span>
+                  {t.payAndClaim(formatCurrency(calculation.enteredAmount, currency))}
+                </span>
               </>
             )}
           </button>

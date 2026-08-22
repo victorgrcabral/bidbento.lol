@@ -6,6 +6,8 @@ import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency } from "@/lib/currency";
 import { normalizeDomain, getFaviconUrl } from "@/lib/utils";
 import { parseCustomColor } from "@/lib/colors";
+import { Language, getTranslation } from "@/lib/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import {
   Zap,
   TrendingUp,
@@ -18,7 +20,6 @@ import {
   ShieldCheck,
   CreditCard,
   Palette,
-  ExternalLink,
 } from "lucide-react";
 
 const PRESET_AMOUNTS = [5, 15, 30, 50, 100, 250, 500];
@@ -34,19 +35,48 @@ const PRESET_COLORS = [
   "#000000",
 ];
 
-const CATEGORIES = [
-  "SaaS",
-  "Developer Tools",
-  "IA / Machine Learning",
-  "Design & UI",
-  "Fintech",
-  "Crypto / Web3",
-  "E-commerce",
-  "Produtividade",
-  "Outros",
-];
-
 export default function CheckoutPage() {
+  const [language, setLanguage] = useState<Language>("en");
+
+  useEffect(() => {
+    try {
+      const savedLang = localStorage.getItem("bidbento_lang") as Language;
+      if (savedLang && (savedLang === "en" || savedLang === "es" || savedLang === "pt")) {
+        setLanguage(savedLang);
+      } else {
+        const userLocale = navigator.language.toLowerCase();
+        if (userLocale.startsWith("pt")) {
+          setLanguage("pt");
+          setCurrency("BRL");
+        } else if (userLocale.startsWith("es")) {
+          setLanguage("es");
+          setCurrency("EUR");
+        }
+      }
+    } catch {}
+  }, []);
+
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    try {
+      localStorage.setItem("bidbento_lang", lang);
+    } catch {}
+  };
+
+  const t = getTranslation(language);
+
+  const categories = [
+    { key: "SaaS", label: t.categories.saas },
+    { key: "Developer Tools", label: t.categories.devTools },
+    { key: "IA / Machine Learning", label: t.categories.ai },
+    { key: "Design & UI", label: t.categories.design },
+    { key: "Fintech", label: t.categories.fintech },
+    { key: "Crypto / Web3", label: t.categories.crypto },
+    { key: "E-commerce", label: t.categories.ecommerce },
+    { key: "Produtividade", label: t.categories.productivity },
+    { key: "Outros", label: t.categories.other },
+  ];
+
   const [name, setName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
@@ -99,47 +129,57 @@ export default function CheckoutPage() {
         ? Number(((finalBrandAmount / newTotalPool) * 100).toFixed(1))
         : 100;
 
-    return {
-      projectedPercentage,
-      finalBrandAmount,
-    };
-  }, [amount, existingBrand, totalPoolAmount]);
+    const simulatedList = [
+      ...existingBrands.filter((b) => b.domain !== detectedDomain),
+      { totalAmount: finalBrandAmount },
+    ].sort((a, b) => b.totalAmount - a.totalAmount);
 
-  const handleCustomColorChange = (val: string) => {
-    setCustomColorInput(val);
-    const parsed = parseCustomColor(val);
+    const projectedRank =
+      simulatedList.findIndex((item) => item.totalAmount === finalBrandAmount) + 1;
+
+    return {
+      finalBrandAmount,
+      newTotalPool,
+      projectedPercentage,
+      projectedRank: projectedRank > 0 ? projectedRank : 1,
+    };
+  }, [amount, existingBrand, existingBrands, totalPoolAmount, detectedDomain]);
+
+  const handleCustomColorChange = (value: string) => {
+    setCustomColorInput(value);
+    const parsed = parseCustomColor(value);
     if (parsed.isValid) {
       setColor(parsed.hex);
+      setErrorMessage(null);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 4 * 1024 * 1024) {
-      setErrorMessage("A imagem deve ter no máximo 4MB.");
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage("A imagem deve ter menos de 5MB.");
       return;
     }
-    setUploadedFile(file);
-    setUploadedFilePreview(URL.createObjectURL(file));
-  };
 
-  const previewLogo =
-    uploadedFilePreview ||
-    (logoUrl && logoUrl.trim().length > 0 ? logoUrl.trim() : null) ||
-    (detectedDomain ? getFaviconUrl(detectedDomain) : null);
+    setUploadedFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setUploadedFilePreview(previewUrl);
+    setLogoUrl("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
     if (!name.trim() || !websiteUrl.trim()) {
-      setErrorMessage("Nome e URL do website são obrigatórios.");
+      setErrorMessage(t.requiredFieldsError);
       return;
     }
 
     if (!amount || amount < 1.0) {
-      setErrorMessage("O valor mínimo é de $1.00 USD.");
+      setErrorMessage(t.minAmountError);
       return;
     }
 
@@ -196,12 +236,19 @@ export default function CheckoutPage() {
             className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-zinc-300 hover:text-white bg-zinc-900 border border-white/10 px-4 py-2 rounded-full transition-all"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span>Voltar ao BidBento.lol</span>
+            <span>{t.backToHome}</span>
           </Link>
 
-          <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" /> Checkout Seguro
-          </span>
+          <div className="flex items-center gap-3">
+            <LanguageToggle
+              language={language}
+              onLanguageChange={handleLanguageChange}
+            />
+
+            <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5" /> {t.secureCheckout}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -209,10 +256,10 @@ export default function CheckoutPage() {
           <div className="lg:col-span-7 space-y-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
-                Conquistar Espaço na Tela
+                {t.modalTitle}
               </h1>
               <p className="text-xs sm:text-sm text-zinc-400">
-                Preencha os dados da sua empresa ou software para preencher a tela imediatamente.
+                {t.modalDesc}
               </p>
             </div>
 
@@ -223,21 +270,21 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Amount Presets */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Amount Selection */}
               <div>
-                <label className="block text-xs font-semibold text-zinc-300 mb-2">
-                  Valor do Lance ($ USD) *
+                <label className="block text-sm font-semibold text-zinc-200 mb-2">
+                  {t.investmentAmount}
                 </label>
-                <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 mb-2">
+                <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-2">
                   {PRESET_AMOUNTS.map((val) => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => setAmount(val)}
-                      className={`py-2 text-xs font-bold rounded-xl border transition-all ${
+                      className={`py-2.5 rounded-xl font-bold font-mono text-xs text-center border transition-all ${
                         amount === val
-                          ? "bg-violet-600 border-violet-400 text-white shadow-md shadow-violet-600/40"
+                          ? "bg-violet-600 border-violet-400 text-white shadow-lg shadow-violet-600/40 scale-105"
                           : "bg-zinc-900 border-white/10 text-zinc-300 hover:bg-zinc-800"
                       }`}
                     >
@@ -245,68 +292,65 @@ export default function CheckoutPage() {
                     </button>
                   ))}
                 </div>
-
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-sm">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={amount || ""}
-                    onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                    placeholder="Outro valor em dólares..."
-                    className="w-full pl-8 pr-4 py-2.5 bg-zinc-900/90 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500 font-mono"
-                  />
-                </div>
+                <input
+                  type="number"
+                  min="1"
+                  step="any"
+                  placeholder={t.orCustomAmount}
+                  value={amount || ""}
+                  onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+                  className="w-full bg-zinc-900/90 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 font-mono text-sm"
+                />
               </div>
 
-              {/* Brand Name & URL */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Name & URL */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                    Nome da Marca / SaaS *
+                    {t.brandName}
                   </label>
                   <input
                     type="text"
                     required
+                    placeholder={t.brandNamePlaceholder}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Ex: Supabase, Linear..."
-                    className="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500"
+                    className="w-full bg-zinc-900/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs sm:text-sm"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                    URL do Website *
+                    {t.websiteUrl}
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={websiteUrl}
-                    onChange={(e) => setWebsiteUrl(e.target.value)}
-                    placeholder="https://meusaas.com"
-                    className="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      placeholder={t.websiteUrlPlaceholder}
+                      value={websiteUrl}
+                      onChange={(e) => setWebsiteUrl(e.target.value)}
+                      className="w-full bg-zinc-900/90 border border-white/10 rounded-xl pl-9 pr-3.5 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs sm:text-sm font-mono"
+                    />
+                    <Globe className="w-4 h-4 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  </div>
                 </div>
               </div>
 
               {/* Category & Tagline */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                    Setor / Categoria *
+                    {t.categoryLabel}
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500"
+                    className="w-full bg-zinc-900 border border-white/10 rounded-xl px-3.5 py-2.5 text-white text-xs sm:text-sm focus:outline-none focus:border-violet-500"
                   >
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat} className="bg-zinc-900 text-white">
-                        {cat}
+                    {categories.map((c) => (
+                      <option key={c.key} value={c.key}>
+                        {c.label}
                       </option>
                     ))}
                   </select>
@@ -314,105 +358,95 @@ export default function CheckoutPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                    Slogan / Tagline Curta
+                    {t.taglineLabel}
                   </label>
                   <input
                     type="text"
-                    maxLength={80}
+                    placeholder={t.taglinePlaceholder}
                     value={tagline}
                     onChange={(e) => setTagline(e.target.value)}
-                    placeholder="Ex: O melhor banco de dados para Next.js"
-                    className="w-full px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500"
+                    className="w-full bg-zinc-900/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs sm:text-sm"
                   />
                 </div>
               </div>
 
-              {/* Upload Logo */}
+              {/* Logo Upload & Custom Color */}
               <div>
                 <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
-                  Logotipo (Arquivo PNG/JPEG ou URL)
+                  {t.logoLabel}
                 </label>
-                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                  <div
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full sm:w-auto flex-1 cursor-pointer flex items-center justify-center gap-2 px-4 py-2.5 bg-zinc-900 border border-dashed border-white/20 hover:border-violet-500/50 rounded-xl text-xs text-zinc-300 hover:text-white transition-all"
+                    className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 px-4 py-2.5 rounded-xl text-xs font-semibold shrink-0"
                   >
-                    <Upload className="w-4 h-4 text-violet-400 shrink-0" />
-                    <span className="truncate">
-                      {uploadedFile ? uploadedFile.name : "Escolher arquivo de imagem..."}
-                    </span>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                  </div>
+                    <Upload className="w-3.5 h-3.5 text-violet-400" />
+                    <span>{uploadedFile ? uploadedFile.name : t.chooseFile}</span>
+                  </button>
 
                   <input
                     type="url"
+                    placeholder={t.orLogoUrl}
                     value={logoUrl}
                     onChange={(e) => {
                       setLogoUrl(e.target.value);
                       setUploadedFile(null);
                       setUploadedFilePreview(null);
                     }}
-                    placeholder="Ou cole a URL..."
-                    className="w-full sm:w-48 px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500"
+                    className="flex-1 bg-zinc-900/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs sm:text-sm"
                   />
                 </div>
               </div>
 
-              {/* Color Customizer */}
+              {/* Color Selection */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-semibold text-zinc-300">
-                    Cor de Destaque da Marca
+                  <label className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
+                    <Palette className="w-3.5 h-3.5 text-violet-400" /> {t.brandColorLabel}
                   </label>
                   <button
                     type="button"
                     onClick={() => setIsCustomColor(!isCustomColor)}
-                    className="text-xs text-violet-400 hover:text-violet-300 font-medium flex items-center gap-1"
+                    className="text-[11px] text-violet-400 hover:text-violet-300 font-medium underline"
                   >
-                    <Palette className="w-3.5 h-3.5" />
-                    {isCustomColor ? "Usar Paleta" : "HEX / RGB / CMYK"}
+                    {isCustomColor ? t.paletteToggle : t.customColorToggle}
                   </button>
                 </div>
 
                 {!isCustomColor ? (
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
                     {PRESET_COLORS.map((c) => (
                       <button
-                        key={c}
                         type="button"
+                        key={c}
                         onClick={() => setColor(c)}
-                        style={{ backgroundColor: c }}
-                        className={`w-7 h-7 rounded-full border-2 transition-transform flex items-center justify-center ${
-                          color === c ? "border-white scale-110 shadow-lg" : "border-transparent opacity-80"
+                        className={`w-8 h-8 rounded-full border-2 transition-transform ${
+                          color === c ? "scale-125 border-white" : "border-transparent"
                         }`}
-                      >
-                        {color === c && <Check className="w-3.5 h-3.5 text-white" />}
-                      </button>
+                        style={{ backgroundColor: c }}
+                      />
                     ))}
                   </div>
                 ) : (
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="color"
-                      value={color.startsWith("#") && color.length === 7 ? color : "#7c3aed"}
-                      onChange={(e) => {
-                        setColor(e.target.value);
-                        setCustomColorInput(e.target.value);
-                      }}
-                      className="w-10 h-10 rounded-xl cursor-pointer bg-transparent"
-                    />
+                  <div className="flex items-center gap-2">
                     <input
                       type="text"
+                      placeholder="Ex: #7c3aed, rgb(124, 58, 237), cmyk(48, 76, 0, 7)"
                       value={customColorInput}
                       onChange={(e) => handleCustomColorChange(e.target.value)}
-                      placeholder="#FF0055, rgb(255,0,85) ou cmyk(0,100,67,0)"
-                      className="flex-1 px-3.5 py-2.5 bg-zinc-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-violet-500 font-mono"
+                      className="flex-1 bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs font-mono"
+                    />
+                    <div
+                      className="w-8 h-8 rounded-xl border border-white/20 shrink-0"
+                      style={{ backgroundColor: color }}
                     />
                   </div>
                 )}
@@ -422,82 +456,101 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-6 py-4 px-6 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-violet-600/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98"
+                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-extrabold text-sm sm:text-base shadow-2xl shadow-violet-600/40 border border-violet-400/30 flex items-center justify-center gap-2 transition-transform active:scale-[0.99] disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Conectando ao Stripe...</span>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>{t.processing}</span>
                   </>
                 ) : (
                   <>
-                    <CreditCard className="w-4 h-4" />
-                    <span>Pagar ${amount}.00 USD e Ativar Espaço</span>
+                    <CreditCard className="w-5 h-5" />
+                    <span>{t.payAndClaim(formatCurrency(calculation.finalBrandAmount, currency))}</span>
                   </>
                 )}
               </button>
             </form>
           </div>
 
-          {/* Right: Live Preview Box */}
-          <div className="lg:col-span-5 space-y-5">
-            <div className="p-6 rounded-3xl bg-zinc-950 border border-white/10 shadow-2xl sticky top-8">
-              <h3 className="font-bold text-sm text-zinc-300 mb-4 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-violet-400" /> Pré-Visualização do seu Card
+          {/* Right: Live Preview & Projection */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Live Projection Box */}
+            <div className="p-6 rounded-3xl bg-gradient-to-br from-violet-950/60 via-zinc-900/70 to-zinc-950 border border-violet-500/30 shadow-2xl">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-bold text-violet-300 flex items-center gap-1.5">
+                  <TrendingUp className="w-4 h-4" /> {t.projectionTitle}
+                </span>
+                <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 rounded-full">
+                  {t.projectedRank(calculation.projectedRank)}
+                </span>
+              </div>
+
+              <div className="flex items-baseline gap-2 mb-2">
+                <span className="text-4xl font-black text-white tracking-tight">
+                  ~{calculation.projectedPercentage}%
+                </span>
+                <span className="text-xs text-zinc-300">{t.ofTheScreen}</span>
+              </div>
+
+              {existingBrand && (
+                <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1.5 font-medium">
+                  <Check className="w-4 h-4 shrink-0" />
+                  {t.domainExistsNote(existingBrand.name, formatCurrency(existingBrand.totalAmount, currency))}
+                </p>
+              )}
+            </div>
+
+            {/* Live Block Preview Card */}
+            <div className="p-6 rounded-3xl bg-zinc-950 border border-white/10 shadow-xl space-y-4">
+              <h3 className="text-xs font-mono uppercase tracking-wider text-zinc-400">
+                {t.cardPreviewTitle}
               </h3>
 
-              {/* Simulated Card */}
               <div
-                className="w-full h-48 rounded-2xl border p-4 flex flex-col items-center justify-center text-center relative overflow-hidden transition-all shadow-xl bg-zinc-900"
+                className="w-full h-44 rounded-2xl relative overflow-hidden flex flex-col items-center justify-center p-4 border transition-all"
                 style={{
-                  borderColor: color,
-                  boxShadow: `0 0 30px ${color}30`,
+                  borderColor: `${color}60`,
+                  background: `radial-gradient(circle at center, ${color}30 0%, #09090b 80%)`,
                 }}
               >
                 <div
-                  className="absolute inset-0 opacity-20 pointer-events-none"
-                  style={{
-                    background: `radial-gradient(circle at center, ${color} 0%, transparent 70%)`,
-                  }}
-                />
-
-                <span className="absolute top-3 right-3 text-xs font-bold text-violet-300 bg-violet-950/80 border border-violet-500/30 px-2 py-0.5 rounded-md">
-                  ~{calculation.projectedPercentage}% da tela
-                </span>
-
-                <div
-                  className="w-14 h-14 rounded-xl bg-zinc-950 border border-white/10 p-2 flex items-center justify-center mb-2 overflow-hidden shadow-lg"
+                  className="w-16 h-16 rounded-2xl bg-zinc-900 border border-white/10 p-2 flex items-center justify-center mb-2 overflow-hidden shadow-lg"
                   style={{ borderColor: `${color}60` }}
                 >
-                  {previewLogo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={previewLogo} alt="Logo" className="w-full h-full object-contain" />
-                  ) : (
-                    <Globe className="w-6 h-6 text-zinc-500" />
-                  )}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={
+                      uploadedFilePreview ||
+                      logoUrl ||
+                      getFaviconUrl(detectedDomain || "google.com")
+                    }
+                    alt="Logo"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
 
                 <h4 className="font-bold text-base text-white truncate max-w-full">
                   {name || "Sua Marca"}
                 </h4>
-                <p className="text-xs text-zinc-400 truncate max-w-xs mt-0.5">
-                  {tagline || "Seu slogan aparecerá aqui"}
+                <p className="text-xs text-zinc-400 font-mono truncate max-w-full">
+                  {detectedDomain || "seusite.com"}
                 </p>
+                {tagline && (
+                  <p className="text-[11px] text-zinc-300 mt-1 line-clamp-1 italic text-center max-w-full px-2">
+                    &ldquo;{tagline}&rdquo;
+                  </p>
+                )}
               </div>
 
-              {/* Impact Stats */}
-              <div className="mt-5 space-y-2.5 text-xs text-zinc-400">
-                <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                  <span>Dominância Projetada:</span>
-                  <span className="font-bold text-white font-mono">~{calculation.projectedPercentage}%</span>
+              <div className="space-y-2 text-xs text-zinc-400">
+                <div className="flex justify-between py-1 border-b border-white/5">
+                  <span>{t.projectedShare}</span>
+                  <span className="font-bold text-violet-400">~{calculation.projectedPercentage}%</span>
                 </div>
-                <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                  <span>Total Acumulado da Marca:</span>
-                  <span className="font-bold text-white font-mono">${calculation.finalBrandAmount}.00 USD</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Ativação:</span>
-                  <span className="font-bold text-emerald-400">Instantânea via Stripe</span>
+                <div className="flex justify-between py-1 border-b border-white/5">
+                  <span>{t.instantActivation}</span>
+                  <span className="text-emerald-400 font-medium">{t.instantActivationDesc}</span>
                 </div>
               </div>
             </div>

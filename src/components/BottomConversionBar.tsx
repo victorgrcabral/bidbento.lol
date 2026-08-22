@@ -4,7 +4,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency } from "@/lib/currency";
+import { Language, getTranslation } from "@/lib/i18n";
 import { CurrencyToggle } from "./CurrencyToggle";
+import { LanguageToggle } from "./LanguageToggle";
 import {
   Zap,
   Trophy,
@@ -26,6 +28,8 @@ interface BottomConversionBarProps {
   lastBid: { brandName: string; amount: number; timeAgo: string } | null;
   currency: CurrencyCode;
   onCurrencyChange: (code: CurrencyCode) => void;
+  language: Language;
+  onLanguageChange: (lang: Language) => void;
   onOpenPurchase: () => void;
   onOpenLeaderboard: () => void;
 }
@@ -41,20 +45,23 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
   lastBid,
   currency,
   onCurrencyChange,
+  language = "en",
+  onLanguageChange,
   onOpenPurchase,
   onOpenLeaderboard,
 }) => {
+  const t = getTranslation(language);
   const [activeMessageIndex, setActiveMessageIndex] = useState(0);
 
   const conversionMessages = [
     leader
-      ? `⚡ ${leader.name} lidera com ${leader.percentage}% da tela. Conquiste seu espaço agora!`
-      : "🚀 Conquiste espaço na tela e atraia cliques para o seu SaaS.",
-    `👀 Mais de ${totalClicks.toLocaleString()} cliques gerados para as marcas na tela.`,
+      ? t.copyLeader(leader.name, leader.percentage)
+      : t.copyStartingFrom,
+    t.copyClicks(totalClicks.toLocaleString()),
     lastBid
-      ? `🔥 Último lance: ${lastBid.brandName} investiu +${formatCurrency(lastBid.amount, currency)} (${lastBid.timeAgo}).`
-      : "💡 A partir de $1.00 sua marca já ganha visibilidade instantânea.",
-    "🛡️ Não seja diluído! Garanta sua dominância visual no BidBento.lol.",
+      ? t.copyLastBid(lastBid.brandName, formatCurrency(lastBid.amount, currency), lastBid.timeAgo)
+      : t.copyStartingFrom,
+    t.copyAntiDilution,
   ];
 
   useEffect(() => {
@@ -76,7 +83,7 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
           <div className="h-6 flex items-center overflow-hidden w-full md:w-auto">
             <AnimatePresence mode="wait">
               <motion.div
-                key={activeMessageIndex}
+                key={`${language}-${activeMessageIndex}`}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
@@ -89,7 +96,7 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
           </div>
         </div>
 
-        {/* Right: Actions, Pagination, Currency, Rules and Main CTA */}
+        {/* Right: Actions, Pagination, Currency, Language, Rules and Main CTA */}
         <div className="flex items-center justify-between md:justify-end gap-2 sm:gap-3 w-full md:w-auto shrink-0 flex-wrap sm:flex-nowrap">
           {/* Pagination Controls */}
           {totalPages > 1 && (
@@ -98,7 +105,7 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 disabled={currentPage <= 1}
                 className="p-1 rounded-full hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                title="Página Anterior"
+                title="Previous Page"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
@@ -109,12 +116,18 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
                 onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage >= totalPages}
                 className="p-1 rounded-full hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
-                title="Próxima Página"
+                title="Next Page"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
+
+          {/* Language Toggle */}
+          <LanguageToggle
+            language={language}
+            onLanguageChange={onLanguageChange}
+          />
 
           {/* Currency Toggle */}
           <div className="hidden sm:block">
@@ -128,20 +141,20 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
           <Link
             href="/rules"
             className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white text-xs font-semibold transition-all"
-            title="Ver Regras e Diretrizes"
+            title={t.rules}
           >
             <BookOpen className="w-3.5 h-3.5 text-sky-400" />
-            <span className="hidden sm:inline">Regras</span>
+            <span className="hidden sm:inline">{t.rules}</span>
           </Link>
 
           {/* Hall of Fame Button */}
           <button
             onClick={onOpenLeaderboard}
             className="flex items-center gap-1.5 px-3 py-2 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-white/10 text-zinc-300 hover:text-white text-xs font-semibold transition-all"
-            title="Ver Ranking Completo"
+            title={t.ranking}
           >
             <Trophy className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Ranking</span>
+            <span className="hidden sm:inline">{t.ranking}</span>
           </button>
 
           {/* Primary Main CTA */}
@@ -151,7 +164,7 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
           >
             <span className="absolute inset-0 w-full h-full bg-white/20 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
             <Zap className="w-4 h-4 fill-white animate-bounce" />
-            <span>Comprar Espaço</span>
+            <span>{t.claimSpace}</span>
             <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </button>
         </div>

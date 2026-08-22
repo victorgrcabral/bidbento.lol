@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { SpacesResponse, BrandSpace } from "@/types";
 import { CurrencyCode } from "@/lib/currency";
+import { Language, getTranslation } from "@/lib/i18n";
 import { ScreenTreemap } from "@/components/ScreenTreemap";
 import { BottomConversionBar } from "@/components/BottomConversionBar";
 import { CategoryFilter } from "@/components/CategoryFilter";
@@ -16,6 +17,7 @@ export default function HomePage() {
   const [data, setData] = useState<SpacesResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currency, setCurrency] = useState<CurrencyCode>("USD");
+  const [language, setLanguage] = useState<Language>("en");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("all");
   
@@ -25,24 +27,38 @@ export default function HomePage() {
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
-  // Auto-detect currency by browser locale
+  const t = getTranslation(language);
+
+  // Auto-detect language and currency by browser locale / localStorage
   useEffect(() => {
     try {
-      const userLocale = navigator.language.toLowerCase();
-      if (userLocale.includes("pt") || userLocale.includes("br")) {
-        setCurrency("BRL");
-      } else if (
-        userLocale.includes("de") ||
-        userLocale.includes("fr") ||
-        userLocale.includes("es") ||
-        userLocale.includes("it")
-      ) {
-        setCurrency("EUR");
+      const savedLang = localStorage.getItem("bidbento_lang") as Language;
+      if (savedLang && (savedLang === "en" || savedLang === "es" || savedLang === "pt")) {
+        setLanguage(savedLang);
+      } else {
+        const userLocale = navigator.language.toLowerCase();
+        if (userLocale.startsWith("pt")) {
+          setLanguage("pt");
+          setCurrency("BRL");
+        } else if (userLocale.startsWith("es")) {
+          setLanguage("es");
+          setCurrency("EUR");
+        } else {
+          setLanguage("en");
+          setCurrency("USD");
+        }
       }
     } catch {
-      // Keep USD default
+      // Keep defaults
     }
   }, []);
+
+  const handleLanguageChange = (lang: Language) => {
+    setLanguage(lang);
+    try {
+      localStorage.setItem("bidbento_lang", lang);
+    } catch {}
+  };
 
   // Fetch Spaces Data with Pagination and Category Filter
   const fetchSpaces = useCallback(async () => {
@@ -83,14 +99,14 @@ export default function HomePage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("success") === "true") {
-        const domain = params.get("domain") || "sua marca";
-        setSuccessToast(`🎉 Espaço garantido com sucesso para ${domain}!`);
+        const domain = params.get("domain") || "your brand";
+        setSuccessToast(t.spacePurchasedToast(domain));
         window.history.replaceState({}, "", "/");
         fetchSpaces();
         setTimeout(() => setSuccessToast(null), 6000);
       }
     }
-  }, [fetchSpaces]);
+  }, [fetchSpaces, t]);
 
   const handleBoost = (brand: BrandSpace) => {
     setBoostTargetBrand(brand);
@@ -106,6 +122,7 @@ export default function HomePage() {
         selectedCategory={selectedCategory}
         onSelectCategory={handleSelectCategory}
         availableCategories={data?.availableCategories || []}
+        language={language}
       />
 
       {/* Main Screen Treemap Area */}
@@ -114,20 +131,21 @@ export default function HomePage() {
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
             <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
             <span className="text-xs text-zinc-400 font-mono tracking-wider">
-              CARREGANDO O BIDBENTO.LOL...
+              {t.loading}
             </span>
           </div>
         ) : (
           <ScreenTreemap
             brands={data?.brands || []}
             currency={currency}
+            language={language}
             onBoost={handleBoost}
             onOpenPurchase={() => setIsPurchaseOpen(true)}
           />
         )}
       </div>
 
-      {/* Bottom Conversion Bar with Pagination */}
+      {/* Bottom Conversion Bar with Pagination & Language Switcher */}
       <BottomConversionBar
         brands={data?.brands || []}
         totalAmount={data?.totalAmount || 0}
@@ -139,6 +157,8 @@ export default function HomePage() {
         lastBid={data?.lastBid || null}
         currency={currency}
         onCurrencyChange={(c) => setCurrency(c)}
+        language={language}
+        onLanguageChange={handleLanguageChange}
         onOpenPurchase={() => setIsPurchaseOpen(true)}
         onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
       />
@@ -150,9 +170,10 @@ export default function HomePage() {
         totalPoolAmount={data?.totalAmount || 0}
         existingBrands={data?.brands || []}
         currency={currency}
+        language={language}
         onSuccess={() => {
           fetchSpaces();
-          setSuccessToast("🚀 Espaço adquirido com sucesso!");
+          setSuccessToast(t.spacePurchasedToast(""));
           setTimeout(() => setSuccessToast(null), 5000);
         }}
       />
@@ -164,9 +185,10 @@ export default function HomePage() {
         onClose={() => setBoostTargetBrand(null)}
         totalPoolAmount={data?.totalAmount || 0}
         currency={currency}
+        language={language}
         onSuccess={() => {
           fetchSpaces();
-          setSuccessToast("⚡ Boost aplicado com sucesso!");
+          setSuccessToast(t.boostAppliedToast);
           setTimeout(() => setSuccessToast(null), 5000);
         }}
       />
@@ -177,6 +199,7 @@ export default function HomePage() {
         onClose={() => setIsLeaderboardOpen(false)}
         brands={data?.brands || []}
         currency={currency}
+        language={language}
         onBoost={handleBoost}
       />
 

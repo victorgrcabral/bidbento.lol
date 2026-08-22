@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency } from "@/lib/currency";
 import { getFaviconUrl } from "@/lib/utils";
+import { Language, getTranslation } from "@/lib/i18n";
 import { X, Zap, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -13,6 +14,7 @@ interface BoostModalProps {
   onClose: () => void;
   totalPoolAmount: number;
   currency: CurrencyCode;
+  language?: Language;
   onSuccess: () => void;
 }
 
@@ -24,8 +26,10 @@ export const BoostModal: React.FC<BoostModalProps> = ({
   onClose,
   totalPoolAmount,
   currency,
+  language = "en",
   onSuccess,
 }) => {
+  const t = getTranslation(language);
   const [amount, setAmount] = useState<number>(25);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -48,7 +52,7 @@ export const BoostModal: React.FC<BoostModalProps> = ({
     setErrorMessage(null);
 
     if (!amount || amount < 1.0) {
-      setErrorMessage("O valor mínimo de boost é de $1.00 USD.");
+      setErrorMessage(t.minAmountError);
       return;
     }
 
@@ -65,7 +69,7 @@ export const BoostModal: React.FC<BoostModalProps> = ({
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || "Erro ao aplicar boost.");
+        throw new Error(data.error || "Erro ao processar boost.");
       }
 
       if (data.url) {
@@ -102,7 +106,7 @@ export const BoostModal: React.FC<BoostModalProps> = ({
             <img src={logo} alt={brand.name} className="w-full h-full object-contain" />
           </div>
           <div>
-            <h3 className="font-bold text-lg text-white">Impulsionar {brand.name}</h3>
+            <h3 className="font-bold text-lg text-white">{t.boostTitle(brand.name)}</h3>
             <p className="text-xs text-zinc-400 font-mono">{brand.domain}</p>
           </div>
         </div>
@@ -111,17 +115,17 @@ export const BoostModal: React.FC<BoostModalProps> = ({
         <div className="p-4 rounded-2xl bg-violet-950/40 border border-violet-500/30 mb-5">
           <div className="flex items-center justify-between text-xs text-violet-300 mb-1">
             <span className="flex items-center gap-1">
-              <TrendingUp className="w-3.5 h-3.5" /> Nova Dominância
+              <TrendingUp className="w-3.5 h-3.5" /> {t.newDominance}
             </span>
             <span className="font-mono text-zinc-400">
-              Atual: {brand.percentage}%
+              {t.currentShare(brand.percentage)}
             </span>
           </div>
           <div className="text-2xl font-black text-white">
-            {calculation.projectedPercentage}% da tela
+            {calculation.projectedPercentage}% {t.ofThePage}
           </div>
           <p className="text-[11px] text-zinc-400 mt-1">
-            Novo total acumulado: {formatCurrency(calculation.newTotal, currency)}
+            {t.newTotalAccumulated(formatCurrency(calculation.newTotal, currency))}
           </p>
         </div>
 
@@ -135,7 +139,7 @@ export const BoostModal: React.FC<BoostModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-zinc-300 mb-2">
-              Escolha o valor do Boost ($ USD)
+              {t.chooseBoostAmount}
             </label>
             <div className="grid grid-cols-5 gap-1.5 mb-2">
               {BOOST_PRESETS.map((val) => (
@@ -164,7 +168,7 @@ export const BoostModal: React.FC<BoostModalProps> = ({
                 step="1"
                 value={amount || ""}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                placeholder="Outro valor..."
+                placeholder={t.orCustomAmount}
                 className="w-full pl-8 pr-4 py-2.5 bg-zinc-900/90 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-violet-500 transition-colors font-mono"
               />
             </div>
@@ -178,12 +182,12 @@ export const BoostModal: React.FC<BoostModalProps> = ({
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Processando...</span>
+                <span>{t.processing}</span>
               </>
             ) : (
               <>
                 <Zap className="w-4 h-4 fill-white" />
-                <span>Aplicar Boost de {formatCurrency(amount, currency)}</span>
+                <span>{t.applyBoostBtn(formatCurrency(amount, currency))}</span>
               </>
             )}
           </button>

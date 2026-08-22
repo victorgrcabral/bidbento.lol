@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { Language } from "./i18n";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -37,36 +38,53 @@ export function ensureUrlProtocol(rawUrl: string): string {
 }
 
 /**
- * Formats relative time (e.g. 'há 2 minutos', 'há 3 horas', 'há 5 dias')
+ * Formats relative time (English, Spanish, Portuguese)
  */
-export function formatTimeAgo(dateInput: string | Date | null | undefined): string {
-  if (!dateInput) return "recentemente";
+export function formatTimeAgo(
+  dateInput: string | Date | null | undefined,
+  lang: Language = "en"
+): string {
+  if (!dateInput) {
+    if (lang === "pt") return "recentemente";
+    if (lang === "es") return "recientemente";
+    return "recently";
+  }
 
   const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   if (diffInSeconds < 60) {
-    return "agora mesmo";
+    if (lang === "pt") return "agora mesmo";
+    if (lang === "es") return "ahora mismo";
+    return "just now";
   }
 
   const diffInMinutes = Math.floor(diffInSeconds / 60);
   if (diffInMinutes < 60) {
-    return `há ${diffInMinutes} min`;
+    if (lang === "pt") return `há ${diffInMinutes} min`;
+    if (lang === "es") return `hace ${diffInMinutes} min`;
+    return `${diffInMinutes}m ago`;
   }
 
   const diffInHours = Math.floor(diffInMinutes / 60);
   if (diffInHours < 24) {
-    return `há ${diffInHours} ${diffInHours === 1 ? "hora" : "horas"}`;
+    if (lang === "pt") return `há ${diffInHours} ${diffInHours === 1 ? "hora" : "horas"}`;
+    if (lang === "es") return `hace ${diffInHours} ${diffInHours === 1 ? "hora" : "horas"}`;
+    return `${diffInHours}h ago`;
   }
 
   const diffInDays = Math.floor(diffInHours / 24);
   if (diffInDays < 30) {
-    return `há ${diffInDays} ${diffInDays === 1 ? "dia" : "dias"}`;
+    if (lang === "pt") return `há ${diffInDays} ${diffInDays === 1 ? "dia" : "dias"}`;
+    if (lang === "es") return `hace ${diffInDays} ${diffInDays === 1 ? "día" : "días"}`;
+    return `${diffInDays}d ago`;
   }
 
   const diffInMonths = Math.floor(diffInDays / 30);
-  return `há ${diffInMonths} ${diffInMonths === 1 ? "mês" : "meses"}`;
+  if (lang === "pt") return `há ${diffInMonths} ${diffInMonths === 1 ? "mês" : "meses"}`;
+  if (lang === "es") return `hace ${diffInMonths} ${diffInMonths === 1 ? "mes" : "meses"}`;
+  return `${diffInMonths}mo ago`;
 }
 
 /**

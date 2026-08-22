@@ -4,14 +4,16 @@ import React from "react";
 import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency } from "@/lib/currency";
 import { formatTimeAgo, getFaviconUrl } from "@/lib/utils";
-import { X, Trophy, MousePointerClick, ExternalLink, Zap } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Language, getTranslation } from "@/lib/i18n";
+import { X, Trophy, MousePointerClick, Zap } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface LeaderboardDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   brands: BrandSpace[];
   currency: CurrencyCode;
+  language?: Language;
   onBoost: (brand: BrandSpace) => void;
 }
 
@@ -20,8 +22,10 @@ export const LeaderboardDrawer: React.FC<LeaderboardDrawerProps> = ({
   onClose,
   brands,
   currency,
+  language = "en",
   onBoost,
 }) => {
+  const t = getTranslation(language);
   if (!isOpen) return null;
 
   return (
@@ -40,9 +44,9 @@ export const LeaderboardDrawer: React.FC<LeaderboardDrawerProps> = ({
               <Trophy className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-bold text-lg text-white">Ranking de Dominância</h2>
+              <h2 className="font-bold text-lg text-white">{t.leaderboardTitle}</h2>
               <p className="text-xs text-zinc-400">
-                Todas as {brands.length} marcas disputando o BidBento.lol
+                {t.leaderboardDesc(brands.length)}
               </p>
             </div>
           </div>
@@ -93,7 +97,7 @@ export const LeaderboardDrawer: React.FC<LeaderboardDrawerProps> = ({
                       <h4 className="font-bold text-sm text-white truncate">{b.name}</h4>
                     </div>
                     <div className="flex items-center gap-2 text-[11px] text-zinc-400">
-                      <span className="font-bold text-violet-400">{b.percentage}% da tela</span>
+                      <span className="font-bold text-violet-400">{b.percentage}% {t.ofThePage}</span>
                       <span>•</span>
                       <span className="flex items-center gap-0.5 text-emerald-400">
                         <MousePointerClick className="w-2.5 h-2.5" />
@@ -109,7 +113,7 @@ export const LeaderboardDrawer: React.FC<LeaderboardDrawerProps> = ({
                       {formatCurrency(b.totalAmount, currency)}
                     </div>
                     <div className="text-[10px] text-zinc-500">
-                      {formatTimeAgo(b.lastPaymentAt)}
+                      {formatTimeAgo(b.lastPaymentAt, language)}
                     </div>
                   </div>
 
@@ -119,7 +123,7 @@ export const LeaderboardDrawer: React.FC<LeaderboardDrawerProps> = ({
                       onBoost(b);
                     }}
                     className="p-2 rounded-xl bg-violet-600/20 hover:bg-violet-600 text-violet-300 hover:text-white transition-colors"
-                    title="Impulsionar esta marca"
+                    title={t.boostBrand}
                   >
                     <Zap className="w-3.5 h-3.5" />
                   </button>
