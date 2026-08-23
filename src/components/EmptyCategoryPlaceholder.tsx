@@ -1,8 +1,9 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { Zap, Sparkles, Flag, ArrowRight } from "lucide-react";
+import { Zap, Flag, ArrowRight } from "lucide-react";
 import { Language, getTranslation } from "@/lib/i18n";
 
 interface EmptyCategoryPlaceholderProps {
@@ -78,137 +79,17 @@ export const EmptyCategoryPlaceholder: React.FC<EmptyCategoryPlaceholderProps> =
         className="absolute w-96 h-96 rounded-full bg-gradient-to-tr from-emerald-500/20 via-violet-600/20 to-transparent blur-3xl pointer-events-none"
       />
 
-      {/* Floating Space Bento Mascot Character */}
-      <div className="relative mb-6 z-10">
-        {/* Radar Scanner Waves */}
-        <motion.div
-          animate={{ scale: [1, 2.2], opacity: [0.6, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
-          className="absolute inset-0 m-auto w-24 h-24 rounded-full border border-emerald-400/40 pointer-events-none"
+      {/* Transparent animated mascot supplied by the project owner */}
+      <div className="relative z-10 mb-3 flex w-full justify-center">
+        <Image
+          src="/bidbento-mascot-transparent.svg"
+          alt="BidBento mascot scanning for an open category"
+          width={272}
+          height={270}
+          priority
+          unoptimized
+          className="h-auto w-80 max-w-full drop-shadow-2xl sm:w-96"
         />
-        <motion.div
-          animate={{ scale: [1, 2.2], opacity: [0.6, 0] }}
-          transition={{ duration: 3, repeat: Infinity, delay: 1.5, ease: "easeOut" }}
-          className="absolute inset-0 m-auto w-24 h-24 rounded-full border border-violet-400/40 pointer-events-none"
-        />
-
-        {/* Orbiting Stars & Coins */}
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 -m-8 pointer-events-none"
-        >
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-amber-400/80 shadow-[0_0_12px_#f59e0b] flex items-center justify-center text-[9px] font-black text-black">
-            $
-          </div>
-          <div className="absolute bottom-2 right-4 w-3 h-3 text-emerald-400">
-            <Sparkles className="w-full h-full animate-pulse" />
-          </div>
-          <div className="absolute top-1/2 left-0 w-2.5 h-2.5 rounded-full bg-violet-400 shadow-[0_0_10px_#a855f7]" />
-        </motion.div>
-
-        {/* The Animated Character Box (Bento Pioneer) */}
-        <motion.div
-          animate={{
-            y: [-10, 10, -10],
-            rotate: [-2, 2, -2],
-          }}
-          transition={{
-            duration: 4,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-          className="relative w-28 h-28 sm:w-32 sm:h-32"
-        >
-          <svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full filter drop-shadow-2xl">
-            {/* Jetpack Booster Flames */}
-            <motion.path
-              animate={{
-                d: [
-                  "M65 140 Q80 165 95 140 Q80 152 65 140 Z",
-                  "M65 140 Q80 178 95 140 Q80 158 65 140 Z",
-                  "M65 140 Q80 165 95 140 Q80 152 65 140 Z",
-                ],
-              }}
-              transition={{ duration: 0.4, repeat: Infinity, ease: "easeInOut" }}
-              fill="url(#flame-grad)"
-            />
-
-            {/* Jetpack Thrusters */}
-            <rect x="58" y="118" width="16" height="24" rx="4" fill="#27272a" stroke="#3f3f46" strokeWidth="3" />
-            <rect x="86" y="118" width="16" height="24" rx="4" fill="#27272a" stroke="#3f3f46" strokeWidth="3" />
-
-            {/* Robot Body / Bento Head */}
-            <rect x="25" y="25" width="110" height="96" rx="28" fill="#18181b" stroke="url(#body-border)" strokeWidth="4" />
-
-            {/* Glass Face Screen */}
-            <rect x="36" y="36" width="88" height="74" rx="20" fill="#09090b" stroke="#27272a" strokeWidth="2" />
-
-            {/* Eyes Screen (Blinking & Searching) */}
-            <motion.g
-              animate={{
-                scaleY: [1, 1, 0.1, 1, 1, 1],
-              }}
-              transition={{
-                duration: 3.5,
-                repeat: Infinity,
-                times: [0, 0.45, 0.5, 0.55, 0.9, 1],
-              }}
-              style={{ transformOrigin: "80px 70px" }}
-            >
-              {/* Left Eye */}
-              <circle cx="58" cy="68" r="9" fill="#10b981" />
-              <circle cx="61" cy="65" r="3" fill="#ffffff" />
-
-              {/* Right Eye */}
-              <circle cx="102" cy="68" r="9" fill="#10b981" />
-              <circle cx="105" cy="65" r="3" fill="#ffffff" />
-
-              {/* Cute Digital Smile */}
-              <path d="M72 82 Q80 89 88 82" stroke="#10b981" strokeWidth="3.5" strokeLinecap="round" />
-            </motion.g>
-
-            {/* Antenna with Pulsing Beacon */}
-            <line x1="80" y1="25" x2="80" y2="8" stroke="#71717a" strokeWidth="4" strokeLinecap="round" />
-            <motion.circle
-              cx="80"
-              cy="8"
-              r="6"
-              fill="#a855f7"
-              animate={{
-                scale: [1, 1.3, 1],
-                fill: ["#a855f7", "#34d399", "#a855f7"],
-              }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-
-            {/* Flag Pole on Hand */}
-            <motion.g
-              animate={{ rotate: [-5, 8, -5] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              style={{ transformOrigin: "135px 75px" }}
-            >
-              <line x1="135" y1="95" x2="135" y2="15" stroke="#e4e4e7" strokeWidth="3.5" strokeLinecap="round" />
-              {/* Emerald Triangular Flag with $ */}
-              <path d="M135 18 L160 30 L135 42 Z" fill="#10b981" />
-              <circle cx="143" cy="30" r="4" fill="#ffffff" />
-            </motion.g>
-
-            {/* Gradients */}
-            <defs>
-              <linearGradient id="body-border" x1="0" y1="0" x2="160" y2="160">
-                <stop offset="0%" stopColor="#8b5cf6" />
-                <stop offset="50%" stopColor="#10b981" />
-                <stop offset="100%" stopColor="#3b82f6" />
-              </linearGradient>
-              <linearGradient id="flame-grad" x1="80" y1="140" x2="80" y2="170" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stopColor="#f59e0b" />
-                <stop offset="50%" stopColor="#ef4444" />
-                <stop offset="100%" stopColor="transparent" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </motion.div>
       </div>
 
       {/* Copy & Persuasive Value Proposition */}

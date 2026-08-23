@@ -20,7 +20,8 @@
     "test:real-stats": "node scripts/check-real-stats.mjs",
     "test:category-nav": "node scripts/check-category-nav.mjs",
     "test:stripe-safety": "node scripts/check-stripe-safety.mjs",
-    "test:payment-currency": "node --experimental-strip-types scripts/check-payment-currency.mjs"
+    "test:payment-currency": "node --experimental-strip-types scripts/check-payment-currency.mjs",
+    "test:mobile-ux": "node scripts/check-mobile-ux.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.9.1",

@@ -155,7 +155,7 @@ export default function HomePage() {
       </header>
 
       {/* Main Screen Treemap Area with Vertical Swipe/Scroll Page Navigation */}
-      <div className="relative w-full flex-1 pt-16 pb-24 md:pb-20 overflow-hidden">
+      <div className="relative w-full flex-1 pt-16 pb-32 md:pb-20 overflow-hidden">
         {isLoading && !data ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
             <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />

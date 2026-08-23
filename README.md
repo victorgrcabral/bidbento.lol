@@ -2,9 +2,9 @@
   <img src="public/logo.png" alt="bidbento.lol logo" width="380" />
   <br />
 
-  <img src="public/github/bidbento-mascot.svg" alt="BidBento mascot scanning for an open category" width="240" />
+  <img src="public/bidbento-mascot-transparent.svg" alt="BidBento mascot scanning for an open category" width="420" />
   <br />
-  <sub><code>mascot.status = "scouting unclaimed categories"</code></sub>
+  <sub><code>mascot.status = "scouting unclaimed categories with a transparent animated canvas"</code></sub>
 
   <h1>🍱 bidbento.lol</h1>
   <p><strong>The Real-Time Visual Screen Domination & Advertising Engine</strong></p>
@@ -41,6 +41,7 @@
 3. **Atomic Click Attribution Engine:** Non-cached 307 redirect endpoints executing atomic database transactions (`clicksCount` increment + `ClickEvent` telemetry tracking) with zero browser caching delays.
 4. **Live Transparency Dashboard (`/stats`):** Public analytics engine with custom SVG bezier area spline charts, traffic channel breakdowns, live online counter, and verifiable click attribution.
 5. **Global Multi-Currency & i18n Engine:** Native tripartite localization (**English**, **Español**, **Português**) and dynamic currency normalization (**USD**, **EUR**, **BRL**).
+6. **Mobile Conversion Navigation:** Touch-friendly labeled links for Stats, Rules, and Ranking, plus a full-width primary action that respects mobile safe areas.
 
 ---
 
@@ -103,8 +104,8 @@ This ensures that regardless of whether a brand bids $\$1.00$ or $\$500.00$, its
 | **Language** | **TypeScript 5.6** | End-to-end type safety, strict interface contracts for Treemap geometry and database entities |
 | **Styling** | **Tailwind CSS 3.4** | Obsidian dark-mode palette, custom glassmorphism, responsive clamp typography |
 | **Animation Engine** | **Framer Motion 11** | Layout spring physics, vertical card deck slide transitions, animated mascot loop |
-| **Database & ORM** | **Prisma 5.22 + PostgreSQL** | Relational data integrity, schema migrations, and indexed relational models on Supabase AWS Cloud |
-| **Payment Gateway** | **Stripe API v17** | Stripe Checkout Sessions, asynchronous webhook signature validation (`checkout.session.completed`) |
+| **Database & ORM** | **Prisma 7.9 + PostgreSQL** | Relational data integrity, schema migrations, and indexed relational models on Supabase AWS Cloud |
+| **Payment Gateway** | **Stripe API v17.7** | Card Checkout Sessions in USD, EUR, and BRL with idempotent webhook fulfillment (`checkout.session.completed`) |
 | **Analytics Engine** | **Custom Vector SVG** | Zero-dependency bezier area chart rendering, real-time live traffic telemetry |
 | **Edge Hosting** | **Cloudflare / Vercel** | Global CDN distribution, low-latency API response times (<50ms globally) |
 
