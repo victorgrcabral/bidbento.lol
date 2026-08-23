@@ -11,7 +11,7 @@ import { PurchaseModal } from "@/components/PurchaseModal";
 import { BoostModal } from "@/components/BoostModal";
 import { LeaderboardDrawer } from "@/components/LeaderboardDrawer";
 import { BidBentoLogo } from "@/components/BidBentoLogo";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Maximize2, Minimize2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function HomePage() {
@@ -21,6 +21,7 @@ export default function HomePage() {
   const [language, setLanguage] = useState<Language>("en");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isPresentationMode, setIsPresentationMode] = useState(false);
   
   // Modals & Drawers
   const [isPurchaseOpen, setIsPurchaseOpen] = useState(false);
@@ -75,8 +76,10 @@ export default function HomePage() {
   const fetchSpaces = useCallback(async () => {
     try {
       const url = new URL("/api/spaces", window.location.origin);
-      url.searchParams.set("page", currentPage.toString());
-      if (selectedCategory && selectedCategory !== "all") {
+      url.searchParams.set("page", isPresentationMode ? "1" : currentPage.toString());
+      if (isPresentationMode) {
+        url.searchParams.set("limit", "1000");
+      } else if (selectedCategory && selectedCategory !== "all") {
         url.searchParams.set("category", selectedCategory);
       }
 
@@ -90,7 +93,7 @@ export default function HomePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, selectedCategory]);
+  }, [currentPage, selectedCategory, isPresentationMode]);
 
   useEffect(() => {
     fetchSpaces();
@@ -103,6 +106,51 @@ export default function HomePage() {
     setSelectedCategory(cat);
     setCurrentPage(1);
   };
+
+  const enterPresentationMode = useCallback(async () => {
+    setSelectedCategory("all");
+    setCurrentPage(1);
+    setIsPurchaseOpen(false);
+    setBoostTargetBrand(null);
+    setIsLeaderboardOpen(false);
+    setSuccessToast(null);
+    setIsPresentationMode(true);
+    try {
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch {
+      // Visual presentation mode remains active when native fullscreen is unavailable.
+    }
+  }, []);
+
+  const exitPresentationMode = useCallback(async () => {
+    setIsPresentationMode(false);
+    try {
+      if (document.fullscreenElement && document.exitFullscreen) {
+        await document.exitFullscreen();
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const syncFullscreenExit = () => {
+      if (!document.fullscreenElement) setIsPresentationMode(false);
+    };
+    document.addEventListener("fullscreenchange", syncFullscreenExit);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreenExit);
+  }, []);
+
+  useEffect(() => {
+    if (!isPresentationMode) return;
+    const exitFallbackOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !document.fullscreenElement) {
+        setIsPresentationMode(false);
+      }
+    };
+    document.addEventListener("keydown", exitFallbackOnEscape);
+    return () => document.removeEventListener("keydown", exitFallbackOnEscape);
+  }, [isPresentationMode]);
 
   // Check URL params for payment success notification
   useEffect(() => {
@@ -123,11 +171,14 @@ export default function HomePage() {
   };
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-[#050508] text-white flex flex-col justify-between select-none">
+    <main className={`relative w-screen h-screen overflow-hidden text-white flex flex-col justify-between select-none ${isPresentationMode ? "bg-black" : "bg-[#050508]"}`}>
       {/* Top Ambient Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/15 blur-3xl pointer-events-none rounded-full" />
+      {!isPresentationMode && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/15 blur-3xl pointer-events-none rounded-full" />
+      )}
 
       {/* Top Header Navbar */}
+      {!isPresentationMode && (
       <header className="absolute top-0 left-0 right-0 z-40 min-h-14 px-3 py-2 flex items-center gap-3 pointer-events-none">
         {/* Left Logo */}
         <button
@@ -156,10 +207,34 @@ export default function HomePage() {
           />
         </div>
 
+        <button
+          type="button"
+          onClick={enterPresentationMode}
+          aria-label={t.enterFullscreen}
+          title={t.enterFullscreen}
+          className="pointer-events-auto hidden min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/10 bg-zinc-950/90 px-3 py-2 text-sm font-semibold text-zinc-300 shadow-xl backdrop-blur-xl transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-zinc-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-violet-400 active:scale-[0.98] md:flex"
+        >
+          <Maximize2 className="h-4 w-4 text-violet-400" />
+          <span className="hidden xl:inline">{t.enterFullscreen}</span>
+        </button>
+
       </header>
+      )}
+
+      {isPresentationMode && (
+        <button
+          type="button"
+          onClick={exitPresentationMode}
+          aria-label={t.exitFullscreen}
+          className="fixed right-4 top-4 z-[100] flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/15 bg-black/80 px-3 py-2 text-sm font-semibold text-white shadow-2xl backdrop-blur-xl transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] hover:bg-zinc-800 focus:outline-none focus:ring-2 focus:ring-violet-400 active:scale-[0.98]"
+        >
+          <Minimize2 className="h-4 w-4" />
+          <span className="hidden sm:inline">{t.exitFullscreen}</span>
+        </button>
+      )}
 
       {/* Main Screen Treemap Area with Vertical Swipe/Scroll Page Navigation */}
-      <div className="relative w-full flex-1 pt-16 pb-40 md:pt-20 md:pb-20 overflow-hidden">
+      <div className={`relative w-full flex-1 overflow-hidden ${isPresentationMode ? "p-0" : "pt-16 pb-40 md:pt-20 md:pb-20"}`}>
         {isLoading && !data ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
             <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
@@ -178,11 +253,13 @@ export default function HomePage() {
             onPageChange={(p) => setCurrentPage(p)}
             onBoost={handleBoost}
             onOpenPurchase={() => setIsPurchaseOpen(true)}
+            presentationMode={isPresentationMode}
           />
         )}
       </div>
 
       {/* Bottom Conversion Bar with Pagination, Language Switcher & Real-Time Stats */}
+      {!isPresentationMode && (
       <BottomConversionBar
         brands={data?.brands || []}
         totalAmount={data?.totalAmount || 0}
@@ -199,6 +276,7 @@ export default function HomePage() {
         onOpenPurchase={() => setIsPurchaseOpen(true)}
         onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
       />
+      )}
 
       {/* Purchase Modal */}
       <PurchaseModal
@@ -243,7 +321,7 @@ export default function HomePage() {
 
       {/* Success Notification Toast */}
       <AnimatePresence>
-        {successToast && (
+        {successToast && !isPresentationMode && (
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

@@ -21,6 +21,7 @@ interface ScreenTreemapProps {
   onPageChange?: (page: number) => void;
   onBoost: (brand: BrandSpace) => void;
   onOpenPurchase: () => void;
+  presentationMode?: boolean;
 }
 
 export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
@@ -33,6 +34,7 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
   onPageChange,
   onBoost,
   onOpenPurchase,
+  presentationMode = false,
 }) => {
   const [selectedMobileBrand, setSelectedMobileBrand] = useState<BrandSpace | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -132,6 +134,7 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
   }, [brands]);
 
   if (!brands || brands.length === 0) {
+    if (presentationMode) return <div className="h-full w-full bg-black" />;
     return (
       <EmptyCategoryPlaceholder
         categoryName={categoryName}
@@ -171,12 +174,12 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
 
   return (
     <div
-      className="relative w-full h-full p-2 sm:p-3 overflow-hidden"
+      className={`relative w-full h-full overflow-hidden ${presentationMode ? "bg-black" : "p-2 sm:p-3"}`}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onWheel={handleWheel}
     >
-      <div className="relative w-full h-full overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-slate-200/50 dark:bg-black/40 backdrop-blur-sm shadow-inner dark:shadow-2xl">
+      <div className={`relative w-full h-full overflow-hidden ${presentationMode ? "bg-black pointer-events-none" : "rounded-3xl border border-slate-200/90 dark:border-white/10 bg-slate-200/50 dark:bg-black/40 backdrop-blur-sm shadow-inner dark:shadow-2xl"}`}>
         <AnimatePresence mode="popLayout" custom={direction}>
           <motion.div
             key={currentPage}
@@ -202,7 +205,7 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
         </AnimatePresence>
 
         {/* Mobile Swipe Guidance indicator */}
-        {isMobile && totalPages > 1 && (
+        {isMobile && totalPages > 1 && !presentationMode && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-1 bg-black/70 backdrop-blur-md px-1.5 py-2.5 rounded-full border border-white/10 pointer-events-none z-20 opacity-70">
             {currentPage > 1 && <ChevronUp className="w-3.5 h-3.5 text-violet-400 animate-bounce" />}
             <span className="font-mono text-[9px] font-bold text-zinc-300">
@@ -215,7 +218,7 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
 
       {/* Mobile Popover Modal */}
       <AnimatePresence>
-        {selectedMobileBrand && isMobile && (
+        {selectedMobileBrand && isMobile && !presentationMode && (
           <div
             className="fixed inset-0 z-[90] flex items-center justify-center overflow-hidden bg-black/85 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm"
             onClick={() => setSelectedMobileBrand(null)}

@@ -8,6 +8,8 @@ export interface TranslationDict {
   ranking: string;
   rules: string;
   stats: string;
+  enterFullscreen: string;
+  exitFullscreen: string;
   liveOnline: (count: number) => string;
   visitorsSinceLaunch: (count: string) => string;
   seeStats: string;
@@ -153,6 +155,8 @@ export const translations: Record<Language, TranslationDict> = {
     ranking: "Ranking",
     rules: "Rules",
     stats: "Analytics",
+    enterFullscreen: "Fullscreen",
+    exitFullscreen: "Exit fullscreen",
     liveOnline: (count) => `${count} online`,
     visitorsSinceLaunch: (count) => `${count} visitors since launch`,
     seeStats: "see stats →",
@@ -288,6 +292,8 @@ export const translations: Record<Language, TranslationDict> = {
     ranking: "Ranking",
     rules: "Reglas",
     stats: "Estadísticas",
+    enterFullscreen: "Pantalla completa",
+    exitFullscreen: "Salir de pantalla completa",
     liveOnline: (count) => `${count} online`,
     visitorsSinceLaunch: (count) => `${count} visitantes desde el lanzamiento`,
     seeStats: "ver stats →",
@@ -423,6 +429,8 @@ export const translations: Record<Language, TranslationDict> = {
     ranking: "Ranking",
     rules: "Regras",
     stats: "Estatísticas",
+    enterFullscreen: "Tela cheia",
+    exitFullscreen: "Sair da tela cheia",
     liveOnline: (count) => `${count} online`,
     visitorsSinceLaunch: (count) => `${count} visitantes desde o lançamento`,
     seeStats: "ver stats →",

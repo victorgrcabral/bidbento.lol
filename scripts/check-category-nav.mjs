@@ -14,5 +14,7 @@ if (!filter.includes("Ver mais categorias")) throw new Error("Overflow category 
 if (!filter.includes("min-h-11") || !filter.includes("px-4 py-2")) throw new Error("Category controls do not meet the 44px touch target with balanced padding");
 if (!filter.includes("min-h-14")) throw new Error("Desktop category container does not leave room around 44px items");
 if (home.includes("hidden lg:block")) throw new Error("Logo is still hidden on mobile");
+if (!filter.includes("ResizeObserver")) throw new Error("Category limit is not driven by the real container width");
+if (filter.includes("window.innerWidth >= 1600")) throw new Error("Category limit still depends on the viewport instead of the container");
 
 console.log("Category navigation OK: mobile logo space, 44px controls, balanced padding, one-line desktop overflow");

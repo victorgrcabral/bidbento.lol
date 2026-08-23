@@ -21,9 +21,10 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   language = "en",
 }) => {
   const t = getTranslation(language);
-  const [visibleLimit, setVisibleLimit] = useState(6);
+  const [visibleLimit, setVisibleLimit] = useState(5);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const desktopContainerRef = useRef<HTMLDivElement>(null);
 
   const categoryMap = useMemo(() => {
     const configured = getCategoryOptions(language);
@@ -42,16 +43,21 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   }, [availableCategories, categoryTotals, language]);
 
   useEffect(() => {
-    const updateLimit = () => {
-      if (window.innerWidth >= 1600) setVisibleLimit(10);
-      else if (window.innerWidth >= 1440) setVisibleLimit(8);
-      else if (window.innerWidth >= 1200) setVisibleLimit(6);
-      else if (window.innerWidth >= 1024) setVisibleLimit(5);
-      else setVisibleLimit(4);
+    const container = desktopContainerRef.current;
+    if (!container) return;
+    const updateLimit = (width: number) => {
+      if (width >= 1100) setVisibleLimit(7);
+      else if (width >= 960) setVisibleLimit(6);
+      else if (width >= 800) setVisibleLimit(5);
+      else if (width >= 640) setVisibleLimit(4);
+      else setVisibleLimit(3);
     };
-    updateLimit();
-    window.addEventListener("resize", updateLimit);
-    return () => window.removeEventListener("resize", updateLimit);
+    updateLimit(container.getBoundingClientRect().width);
+    const observer = new ResizeObserver((entries) => {
+      updateLimit(entries[0]?.contentRect.width || container.clientWidth);
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -84,7 +90,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
         {categoryMap.map((category) => <option key={category.key} value={category.key}>{category.label}</option>)}
       </select>
 
-      <div className="relative hidden min-h-14 items-center gap-1 rounded-full border border-white/10 bg-zinc-950/90 p-1 shadow-xl shadow-black/50 backdrop-blur-xl md:flex">
+      <div ref={desktopContainerRef} className="relative hidden min-h-14 items-center gap-1 rounded-full border border-white/10 bg-zinc-950/90 p-1 shadow-xl shadow-black/50 backdrop-blur-xl md:flex">
         {visibleCategories.map((category) => (
           <button key={category.key} type="button" onClick={() => onSelectCategory(category.key)} className={buttonClass(selectedCategory === category.key)}>
             <span className="flex items-center gap-1">
