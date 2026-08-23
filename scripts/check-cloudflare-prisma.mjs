@@ -1,18 +1,22 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const schema = readFileSync(new URL("../prisma/schema.prisma", import.meta.url), "utf8");
-const client = readFileSync(new URL("../src/lib/prisma.ts", import.meta.url), "utf8");
+const db = readFileSync(new URL("../src/lib/db.ts", import.meta.url), "utf8");
+const apiRoot = fileURLToPath(new URL("../src/app/api", import.meta.url));
 
-const expectations = [
-  [schema.includes('provider = "prisma-client"'), "Prisma must use the Rust-free prisma-client generator"],
-  [schema.includes('runtime  = "cloudflare"'), "Prisma client runtime must target Cloudflare"],
-  [client.includes('from "@prisma/adapter-pg"'), "Prisma must use the PostgreSQL driver adapter"],
-  [client.includes("withPrisma"), "API handlers need a request-scoped Prisma helper"],
-  [!client.includes('from "@prisma/client"'), "The legacy native Prisma client must not be imported"],
-];
-
-for (const [passes, message] of expectations) {
-  if (!passes) throw new Error(message);
+function collectFiles(directory) {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    return entry.isDirectory() ? collectFiles(path) : path.endsWith(".ts") ? [path] : [];
+  });
 }
 
-console.log("Cloudflare Prisma config OK: Rust-free client + pg adapter");
+const apiSource = collectFiles(apiRoot).map((file) => readFileSync(file, "utf8")).join("\n");
+
+if (!db.includes('from "pg"')) throw new Error("Cloudflare database layer must use node-postgres");
+if (!db.includes("withDb")) throw new Error("Request-scoped database helper is missing");
+if (apiSource.includes("@/lib/prisma")) throw new Error("A production API still imports Prisma WASM");
+if (apiSource.includes("@/generated/prisma")) throw new Error("A production API still imports the generated Prisma client");
+
+console.log("Cloudflare database config OK: APIs use pg without Prisma WASM");

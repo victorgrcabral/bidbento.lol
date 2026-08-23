@@ -5,6 +5,7 @@ import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency, SUPPORTED_CURRENCIES } from "@/lib/currency";
 import { getFaviconUrl } from "@/lib/utils";
 import { Language, getTranslation } from "@/lib/i18n";
+import { getAnonymousSessionId } from "@/lib/analytics-client";
 import { X, Zap, TrendingUp, AlertCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -79,6 +80,7 @@ export const BoostModal: React.FC<BoostModalProps> = ({
           brandId: brand.id,
           amount: calculation.enteredAmountUSD,
           currency,
+          sessionId: getAnonymousSessionId(),
         }),
       });
 
@@ -88,12 +90,8 @@ export const BoostModal: React.FC<BoostModalProps> = ({
         throw new Error(data.error || "Failed to process boost");
       }
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else if (data.success) {
-        onSuccess();
-        onClose();
-      }
+      if (!data.url) throw new Error("A Stripe não retornou a URL do checkout.");
+      window.location.href = data.url;
     } catch (err: any) {
       console.error(err);
       setErrorMessage(err.message || "An error occurred. Please try again.");

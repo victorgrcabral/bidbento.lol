@@ -3,6 +3,7 @@
 import React from "react";
 import { Layers } from "lucide-react";
 import { Language, getTranslation } from "@/lib/i18n";
+import { getCategoryOptions } from "@/lib/categories";
 
 interface CategoryFilterProps {
   selectedCategory: string;
@@ -19,28 +20,36 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
 }) => {
   const t = getTranslation(language);
 
-  const categoryMap: { key: string; label: string }[] = [
-    { key: "all", label: t.categories.all },
-    { key: "Developer Tools", label: t.categories.devTools },
-    { key: "SaaS", label: t.categories.saas },
-    { key: "IA / Machine Learning", label: t.categories.ai },
-    { key: "Design & UI", label: t.categories.design },
-    { key: "Fintech", label: t.categories.fintech },
-    { key: "Crypto / Web3", label: t.categories.crypto },
-    { key: "Produtividade", label: t.categories.productivity },
-    { key: "E-commerce", label: t.categories.ecommerce },
+  const configuredCategories = getCategoryOptions(language, true);
+  const configuredKeys = new Set(configuredCategories.map((category) => category.key));
+  const categoryMap = [
+    ...configuredCategories,
+    ...availableCategories
+      .filter((category) => !configuredKeys.has(category))
+      .map((category) => ({ key: category, label: category })),
   ];
 
   return (
-    <div className="flex items-center gap-1.5 p-1 bg-zinc-950/85 backdrop-blur-xl border border-white/10 rounded-full max-w-full overflow-x-auto no-scrollbar shadow-xl shadow-black/50 pointer-events-auto">
-      {categoryMap.map((cat) => {
+    <nav aria-label={t.categoryLabel} className="w-full pointer-events-auto">
+      <select
+        value={selectedCategory}
+        onChange={(event) => onSelectCategory(event.target.value)}
+        className="md:hidden w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:ring-2 focus:ring-violet-500"
+      >
+        {categoryMap.map((category) => (
+          <option key={category.key} value={category.key}>{category.label}</option>
+        ))}
+      </select>
+
+      <div className="hidden md:flex flex-wrap items-center justify-center gap-1 p-1 bg-zinc-950/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl shadow-black/50">
+        {categoryMap.map((cat) => {
         const isActive = selectedCategory === cat.key;
 
         return (
           <button
             key={cat.key}
             onClick={() => onSelectCategory(cat.key)}
-            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] flex items-center gap-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-violet-400 active:scale-[0.98] ${
               isActive
                 ? "bg-violet-600 text-white shadow-sm shadow-violet-500/40"
                 : "text-zinc-400 hover:text-zinc-100 hover:bg-white/5"
@@ -50,7 +59,8 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
             <span>{cat.label}</span>
           </button>
         );
-      })}
-    </div>
+        })}
+      </div>
+    </nav>
   );
 };

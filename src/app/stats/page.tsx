@@ -10,16 +10,14 @@ import {
   Users,
   MousePointerClick,
   Activity,
-  Clock,
-  ArrowUpRight,
   TrendingUp,
   Share2,
   Zap,
+  CircleDollarSign,
 } from "lucide-react";
 
 export default function StatsPage() {
   const [language, setLanguage] = useState<Language>("en");
-  const [timeRange, setTimeRange] = useState("24h");
   const [statsData, setStatsData] = useState<any>(null);
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
 
@@ -61,27 +59,17 @@ export default function StatsPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const trafficData = statsData?.hourlyTraffic || [
-    { time: "00:00", visitors: 2800 },
-    { time: "02:00", visitors: 3400 },
-    { time: "04:00", visitors: 2900 },
-    { time: "06:00", visitors: 2700 },
-    { time: "08:00", visitors: 3100 },
-    { time: "10:00", visitors: 3800 },
-    { time: "12:00", visitors: 4200 },
-    { time: "14:00", visitors: 5800 },
-    { time: "16:00", visitors: 5100 },
-    { time: "18:00", visitors: 6900 },
-    { time: "20:00", visitors: 5600 },
-    { time: "22:00", visitors: 3800 },
-  ];
+  const trafficData = statsData?.hourlyTraffic || Array.from({ length: 24 }, (_, index) => ({
+    time: `${String(index).padStart(2, "0")}:00`,
+    visitors: 0,
+  }));
 
   // SVG Chart path calculation
-  const maxVal = 7500;
+  const maxVal = Math.max(1, ...trafficData.map((item: any) => item.visitors));
   const svgWidth = 800;
   const svgHeight = 220;
   const points = trafficData.map((d: any, idx: number) => {
-    const x = (idx / (trafficData.length - 1)) * (svgWidth - 40) + 20;
+    const x = (idx / Math.max(1, trafficData.length - 1)) * (svgWidth - 40) + 20;
     const y = svgHeight - (d.visitors / maxVal) * (svgHeight - 40) - 20;
     return { x, y, data: d };
   });
@@ -97,7 +85,9 @@ export default function StatsPage() {
     return `${acc} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x} ${curr.y}`;
   }, "");
 
-  const areaD = `${pathD} L ${points[points.length - 1].x} ${svgHeight} L ${points[0].x} ${svgHeight} Z`;
+  const areaD = points.length
+    ? `${pathD} L ${points[points.length - 1].x} ${svgHeight} L ${points[0].x} ${svgHeight} Z`
+    : "";
 
   return (
     <div className="min-h-screen bg-[#050508] text-white p-4 sm:p-8 md:p-12 overflow-y-auto selection:bg-violet-600 selection:text-white">
@@ -132,7 +122,7 @@ export default function StatsPage() {
               <BidBentoLogo withBadge={true} size="sm" />
               <span className="flex items-center gap-1.5 text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2.5 py-1 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                {statsData?.liveOnline || 677} {t.liveVisitorsNow}
+                {statsData?.liveOnline ?? 0} {t.liveVisitorsNow}
               </span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
@@ -143,22 +133,9 @@ export default function StatsPage() {
             </p>
           </div>
 
-          {/* Time Range Selector */}
-          <div className="flex items-center gap-1 bg-zinc-900 border border-white/10 p-1 rounded-full text-xs font-semibold self-start sm:self-auto shadow-sm">
-            {["24h", "7d", "30d", "all"].map((r) => (
-              <button
-                key={r}
-                onClick={() => setTimeRange(r)}
-                className={`px-3 py-1 rounded-full uppercase text-[11px] transition-all cursor-pointer ${
-                  timeRange === r
-                    ? "bg-violet-600 text-white shadow-sm"
-                    : "text-zinc-400 hover:text-white"
-                }`}
-              >
-                {r === "all" ? "All Time" : `Last ${r}`}
-              </button>
-            ))}
-          </div>
+          <span className="rounded-full border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-300">
+            Dados registrados pelo bidbento.lol
+          </span>
         </div>
 
         {/* 4 Main KPI Cards */}
@@ -169,10 +146,10 @@ export default function StatsPage() {
               <Users className="w-4 h-4 text-violet-400" />
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-white">
-              {(statsData?.totalVisitors || 1181912).toLocaleString()}
+              {(statsData?.totalPageViews ?? 0).toLocaleString()}
             </div>
-            <span className="text-[11px] font-mono text-emerald-400 mt-1 inline-flex items-center gap-0.5">
-              <ArrowUpRight className="w-3.5 h-3.5" /> +24% vs last week
+            <span className="text-xs font-mono text-zinc-400 mt-1 block">
+              {(statsData?.totalVisitors ?? 0).toLocaleString()} visitantes únicos
             </span>
           </div>
 
@@ -182,7 +159,7 @@ export default function StatsPage() {
               <MousePointerClick className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400">
-              {(statsData?.totalClicks || 2480).toLocaleString()}
+              {(statsData?.totalClicks ?? 0).toLocaleString()}
             </div>
             <span className="text-[11px] font-mono text-zinc-400 mt-1 block">
               100% verified brand clicks
@@ -195,23 +172,23 @@ export default function StatsPage() {
               <TrendingUp className="w-4 h-4 text-sky-400" />
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-white">
-              {statsData?.conversionRate || "16.4%"}
+              {(statsData?.clickThroughRate ?? 0).toFixed(2)}%
             </div>
-            <span className="text-[11px] font-mono text-emerald-400 mt-1 inline-flex items-center gap-0.5">
-              <ArrowUpRight className="w-3.5 h-3.5" /> High user intent
+            <span className="text-xs font-mono text-zinc-400 mt-1 block">
+              Cliques confirmados por visualização
             </span>
           </div>
 
           <div className="bg-zinc-950/90 border border-white/10 rounded-2xl p-5 shadow-xl">
             <div className="flex items-center justify-between text-zinc-400 text-xs mb-2">
-              <span className="font-semibold">{t.avgTimeOnPage}</span>
-              <Clock className="w-4 h-4 text-amber-400" />
+              <span className="font-semibold">Receita confirmada</span>
+              <CircleDollarSign className="w-4 h-4 text-amber-400" />
             </div>
             <div className="text-2xl sm:text-3xl font-extrabold text-white">
-              {statsData?.avgSessionTime || "0m 58s"}
+              ${(statsData?.totalRevenue ?? 0).toFixed(2)}
             </div>
-            <span className="text-[11px] font-mono text-zinc-400 mt-1 block">
-              Bounce Rate: {statsData?.bounceRate || "28%"}
+            <span className="text-xs font-mono text-zinc-400 mt-1 block">
+              {(statsData?.completedPayments ?? 0).toLocaleString()} pagamentos concluídos
             </span>
           </div>
         </div>
@@ -225,11 +202,11 @@ export default function StatsPage() {
                 <span>{t.trafficGrowth}</span>
               </h2>
               <p className="text-xs text-zinc-400">
-                Visitor volume distribution across 24h cycle
+                Visitantes únicos registrados nas últimas 24 horas
               </p>
             </div>
             <span className="text-xs font-mono font-bold text-zinc-300 bg-zinc-900 px-3 py-1.5 rounded-full border border-white/10">
-              Peak: 6.9k visitors/hr
+              Pico: {Math.max(0, ...trafficData.map((item: any) => item.visitors)).toLocaleString()} por hora
             </span>
           </div>
 
@@ -323,12 +300,7 @@ export default function StatsPage() {
             </h3>
 
             <div className="space-y-3.5">
-              {(statsData?.channels || [
-                { name: t.directTraffic, percentage: 72, count: "57.4k", color: "#3b82f6" },
-                { name: t.organicSearch, percentage: 14, count: "11.2k", color: "#10b981" },
-                { name: t.socialTraffic, percentage: 9, count: "7.1k", color: "#8b5cf6" },
-                { name: t.referralTraffic, percentage: 5, count: "4.0k", color: "#f59e0b" },
-              ]).map((c: any, i: number) => (
+              {(statsData?.channels || []).map((c: any, i: number) => (
                 <div key={i} className="space-y-1.5">
                   <div className="flex justify-between text-xs font-medium">
                     <span className="text-zinc-300">{c.name}</span>
@@ -347,6 +319,11 @@ export default function StatsPage() {
                   </div>
                 </div>
               ))}
+              {!statsData?.channels?.length && (
+                <p className="rounded-xl bg-zinc-900/60 p-4 text-sm text-zinc-400">
+                  Os canais aparecerão após as primeiras visitas registradas.
+                </p>
+              )}
             </div>
           </div>
 
@@ -358,13 +335,7 @@ export default function StatsPage() {
             </h3>
 
             <div className="space-y-3">
-              {(statsData?.topPages || [
-                { page: "/", name: "Home Canvas", views: "74.2k", pct: 72 },
-                { page: "/category/developer-tools", name: "Developer Tools", views: "14.8k", pct: 14 },
-                { page: "/category/saas", name: "SaaS", views: "11.2k", pct: 11 },
-                { page: "/rules", name: "Rules & FAQ", views: "6.4k", pct: 6 },
-                { page: "/checkout", name: "Checkout", views: "4.8k", pct: 5 },
-              ]).map((p: any, i: number) => (
+              {(statsData?.topPages || []).map((p: any, i: number) => (
                 <div
                   key={i}
                   className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-900/60 border border-white/5 text-xs"
@@ -376,10 +347,15 @@ export default function StatsPage() {
                     <span className="text-[11px] text-zinc-400">{p.name}</span>
                   </div>
                   <span className="font-mono font-bold text-zinc-200 shrink-0">
-                    {p.views} views
+                    {p.views.toLocaleString()} views
                   </span>
                 </div>
               ))}
+              {!statsData?.topPages?.length && (
+                <p className="rounded-xl bg-zinc-900/60 p-4 text-sm text-zinc-400">
+                  As páginas mais acessadas aparecerão quando houver tráfego registrado.
+                </p>
+              )}
             </div>
           </div>
         </div>

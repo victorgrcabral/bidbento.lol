@@ -16,7 +16,10 @@
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "test:cloudflare-config": "node scripts/check-cloudflare-config.mjs",
-    "test:cloudflare-prisma": "node scripts/check-cloudflare-prisma.mjs"
+    "test:cloudflare-prisma": "node scripts/check-cloudflare-prisma.mjs",
+    "test:real-stats": "node scripts/check-real-stats.mjs",
+    "test:category-nav": "node scripts/check-category-nav.mjs",
+    "test:stripe-safety": "node scripts/check-stripe-safety.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.9.1",

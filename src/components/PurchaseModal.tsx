@@ -6,6 +6,8 @@ import { CurrencyCode, formatCurrency, SUPPORTED_CURRENCIES } from "@/lib/curren
 import { normalizeDomain, getFaviconUrl } from "@/lib/utils";
 import { parseCustomColor } from "@/lib/colors";
 import { Language, getTranslation } from "@/lib/i18n";
+import { getCategoryOptions } from "@/lib/categories";
+import { getAnonymousSessionId } from "@/lib/analytics-client";
 import {
   X,
   Zap,
@@ -59,17 +61,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
 }) => {
   const t = getTranslation(language);
 
-  const categories = [
-    { key: "SaaS", label: t.categories.saas },
-    { key: "Developer Tools", label: t.categories.devTools },
-    { key: "IA / Machine Learning", label: t.categories.ai },
-    { key: "Design & UI", label: t.categories.design },
-    { key: "Fintech", label: t.categories.fintech },
-    { key: "Crypto / Web3", label: t.categories.crypto },
-    { key: "E-commerce", label: t.categories.ecommerce },
-    { key: "Produtividade", label: t.categories.productivity },
-    { key: "Outros", label: t.categories.other },
-  ];
+  const categories = getCategoryOptions(language);
 
   const activePresets = useMemo(() => {
     if (currency === "BRL") return PRESET_AMOUNTS_BRL;
@@ -244,6 +236,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           color,
           amount: calculation.enteredAmountUSD,
           currency,
+          sessionId: getAnonymousSessionId(),
         }),
       });
 
@@ -253,12 +246,8 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
         throw new Error(data.error || "Failed to process checkout");
       }
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else if (data.success) {
-        onSuccess();
-        onClose();
-      }
+      if (!data.url) throw new Error("A Stripe não retornou a URL do checkout.");
+      window.location.href = data.url;
     } catch (err: any) {
       console.error(err);
       setErrorMessage(err.message || "An error occurred. Please try again.");

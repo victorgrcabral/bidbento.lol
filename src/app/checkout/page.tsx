@@ -7,6 +7,8 @@ import { CurrencyCode, formatCurrency, SUPPORTED_CURRENCIES } from "@/lib/curren
 import { normalizeDomain, getFaviconUrl } from "@/lib/utils";
 import { parseCustomColor } from "@/lib/colors";
 import { Language, getTranslation } from "@/lib/i18n";
+import { getCategoryOptions } from "@/lib/categories";
+import { getAnonymousSessionId } from "@/lib/analytics-client";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { CurrencyToggle } from "@/components/CurrencyToggle";
 import { BidBentoLogo } from "@/components/BidBentoLogo";
@@ -73,17 +75,7 @@ export default function CheckoutPage() {
 
   const t = getTranslation(language);
 
-  const categories = [
-    { key: "SaaS", label: t.categories.saas },
-    { key: "Developer Tools", label: t.categories.devTools },
-    { key: "IA / Machine Learning", label: t.categories.ai },
-    { key: "Design & UI", label: t.categories.design },
-    { key: "Fintech", label: t.categories.fintech },
-    { key: "Crypto / Web3", label: t.categories.crypto },
-    { key: "E-commerce", label: t.categories.ecommerce },
-    { key: "Produtividade", label: t.categories.productivity },
-    { key: "Outros", label: t.categories.other },
-  ];
+  const categories = getCategoryOptions(language);
 
   const presets = useMemo(() => {
     if (currency === "BRL") return PRESET_AMOUNTS_BRL;
@@ -239,17 +231,15 @@ export default function CheckoutPage() {
           color,
           amount: calculation.enteredAmountUSD,
           currency,
+          sessionId: getAnonymousSessionId(),
         }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to process checkout.");
 
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else {
-        window.location.href = `/?success=true&domain=${encodeURIComponent(detectedDomain || name)}`;
-      }
+      if (!data.url) throw new Error("A Stripe não retornou a URL do checkout.");
+      window.location.href = data.url;
     } catch (err: any) {
       setErrorMessage(err.message || "Connection error.");
     } finally {

@@ -40,10 +40,12 @@ model Payment {
   amount          Float
   currency        String   @default("usd")
   stripeSessionId String?  @unique
+  sessionId       String?
   status          String   @default("completed")
   createdAt       DateTime @default(now())
 
   @@index([brandId])
+  @@index([sessionId])
 }
 
 model ClickEvent {
@@ -55,4 +57,17 @@ model ClickEvent {
   createdAt DateTime @default(now())
 
   @@index([brandId])
+}
+
+model SiteVisit {
+  id        String   @id @default(cuid())
+  sessionId String
+  path      String
+  source    String   @default("Direct")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([path])
+  @@index([source])
 }

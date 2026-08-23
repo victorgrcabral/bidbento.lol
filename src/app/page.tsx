@@ -11,7 +11,6 @@ import { PurchaseModal } from "@/components/PurchaseModal";
 import { BoostModal } from "@/components/BoostModal";
 import { LeaderboardDrawer } from "@/components/LeaderboardDrawer";
 import { BidBentoLogo } from "@/components/BidBentoLogo";
-import { LiveStatsPill } from "@/components/LiveStatsPill";
 import { CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -129,11 +128,11 @@ export default function HomePage() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/15 blur-3xl pointer-events-none rounded-full" />
 
       {/* Top Header Navbar */}
-      <header className="absolute top-0 left-0 right-0 z-40 h-14 px-3 sm:px-4 flex items-center justify-between gap-3 pointer-events-none">
+      <header className="absolute top-0 left-0 right-0 z-40 min-h-14 px-3 py-2 flex items-start gap-3 pointer-events-none">
         {/* Left Logo */}
-        <div className="pointer-events-auto shrink-0 hidden sm:block">
+        <div className="pointer-events-auto shrink-0 hidden lg:block pt-1">
           <BidBentoLogo
-            withBadge={true}
+            withBadge={false}
             size="sm"
             onClick={() => {
               setSelectedCategory("all");
@@ -143,7 +142,7 @@ export default function HomePage() {
         </div>
 
         {/* Center Category Filter */}
-        <div className="pointer-events-auto flex-1 max-w-full sm:max-w-xl md:max-w-2xl flex justify-center overflow-x-auto no-scrollbar mx-auto">
+        <div className="pointer-events-auto flex-1 min-w-0 max-w-6xl mx-auto">
           <CategoryFilter
             selectedCategory={selectedCategory}
             onSelectCategory={handleSelectCategory}
@@ -152,14 +151,10 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Right Live Stats */}
-        <div className="pointer-events-auto shrink-0 hidden md:block">
-          <LiveStatsPill language={language} />
-        </div>
       </header>
 
       {/* Main Screen Treemap Area with Vertical Swipe/Scroll Page Navigation */}
-      <div className="relative w-full flex-1 pt-14 pb-24 md:pb-20 overflow-hidden">
+      <div className="relative w-full flex-1 pt-16 md:pt-28 pb-24 md:pb-20 overflow-hidden">
         {isLoading && !data ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
             <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />

@@ -1,61 +1,39 @@
+import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { withPrisma } from "@/lib/prisma";
+import { withDb } from "@/lib/db";
 import { ensureUrlProtocol } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  return withPrisma(async (prisma) => {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  return withDb(async (pool) => {
+    const { id } = await params;
+    if (!id) return NextResponse.redirect(new URL("/", request.url));
+    const result = await pool.query<{ websiteUrl: string; domain: string }>(
+      `select "websiteUrl", domain from public."Brand" where id = $1 and "isActive" = true limit 1`, [id],
+    );
+    const brand = result.rows[0];
+    if (!brand) return NextResponse.redirect(new URL("/", request.url));
+
+    const db = await pool.connect();
     try {
-    const { id: brandId } = await params;
-
-    if (!brandId) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-
-    const brand = await prisma.brand.findUnique({
-      where: { id: brandId },
-    });
-
-    if (!brand) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-
-    const referrer = request.headers.get("referer") || null;
-    const userAgent = request.headers.get("user-agent") || null;
-
-    // Increment click counter and register click event
-    try {
-      await prisma.$transaction([
-        prisma.brand.update({
-          where: { id: brandId },
-          data: { clicksCount: { increment: 1 } },
-        }),
-        prisma.clickEvent.create({
-          data: {
-            brandId,
-            referrer,
-            userAgent,
-          },
-        }),
-      ]);
-    } catch (dbErr) {
-      console.error("Failed to update click counter in DB:", dbErr);
-    }
-
-    const targetUrl = ensureUrlProtocol(brand.websiteUrl || brand.domain);
-    const response = NextResponse.redirect(targetUrl, { status: 307 });
-    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
-    response.headers.set("Pragma", "no-cache");
-    response.headers.set("Expires", "0");
-    return response;
+      await db.query("begin");
+      await db.query(`update public."Brand" set "clicksCount" = "clicksCount" + 1, "updatedAt" = now() where id = $1`, [id]);
+      await db.query(
+        `insert into public."ClickEvent" (id, "brandId", referrer, "userAgent", "createdAt") values ($1,$2,$3,$4,now())`,
+        [randomUUID(), id, request.headers.get("referer"), request.headers.get("user-agent")],
+      );
+      await db.query("commit");
     } catch (error) {
-      console.error("Error logging click:", error);
-      return NextResponse.redirect(new URL("/", request.url));
+      await db.query("rollback");
+      console.error("Failed to update click counter:", error);
+    } finally {
+      db.release();
     }
+
+    const response = NextResponse.redirect(ensureUrlProtocol(brand.websiteUrl || brand.domain), { status: 307 });
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    return response;
   });
 }

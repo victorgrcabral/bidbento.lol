@@ -1,78 +1,92 @@
 import { NextResponse } from "next/server";
-import { withPrisma } from "@/lib/prisma";
+import { BrandRecord, normalizeBrand, withDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+type SummaryRow = { totalPageViews: number; totalVisitors: number; visitorsLast24h: number; liveOnline: number };
+type HourRow = { time: string; visitors: number };
+type ChannelRow = { name: string; count: number };
+type PageRow = { page: string; views: number };
+type PaymentStatsRow = { completedPayments: number; totalRevenue: number | string | null };
+
+const CHANNEL_COLORS: Record<string, string> = {
+  Direct: "#3b82f6",
+  "Organic Search": "#10b981",
+  Social: "#8b5cf6",
+  Referral: "#f59e0b",
+};
+
 export async function GET() {
-  return withPrisma(async (prisma) => {
+  return withDb(async (db) => {
     try {
-    const brands = await prisma.brand.findMany({
-      where: { isActive: true },
-      orderBy: { clicksCount: "desc" },
-    });
+      const summaryResult = await db.query<SummaryRow>(`
+        select count(*)::int as "totalPageViews",
+          count(distinct "sessionId")::int as "totalVisitors",
+          count(distinct "sessionId") filter (where "createdAt" >= now() - interval '24 hours')::int as "visitorsLast24h",
+          count(distinct "sessionId") filter (where "createdAt" >= now() - interval '5 minutes')::int as "liveOnline"
+        from public."SiteVisit"
+      `);
+      const summary = summaryResult.rows[0] || { totalPageViews: 0, totalVisitors: 0, visitorsLast24h: 0, liveOnline: 0 };
 
-    const totalClicks = brands.reduce((sum, b) => sum + b.clicksCount, 0);
-    const totalPool = brands.reduce((sum, b) => sum + b.totalAmount, 0);
-    
-    // Total simulated visitors + click ratio
-    const baseVisitors = 1181912;
-    const liveOnline = Math.floor(650 + Math.random() * 80);
+      const hourlyResult = await db.query<HourRow>(`
+        with hours as (
+          select generate_series(date_trunc('hour', now()) - interval '23 hours', date_trunc('hour', now()), interval '1 hour') as hour
+        )
+        select to_char(hours.hour, 'HH24:00') as time, count(distinct visits."sessionId")::int as visitors
+        from hours left join public."SiteVisit" visits
+          on visits."createdAt" >= hours.hour and visits."createdAt" < hours.hour + interval '1 hour'
+        group by hours.hour order by hours.hour
+      `);
+      const channelsResult = await db.query<ChannelRow>(`
+        select source as name, count(*)::int as count
+        from public."SiteVisit" where "createdAt" >= now() - interval '30 days'
+        group by source order by count desc
+      `);
+      const pagesResult = await db.query<PageRow>(`
+        select path as page, count(*)::int as views
+        from public."SiteVisit" where "createdAt" >= now() - interval '30 days'
+        group by path order by views desc limit 8
+      `);
+      const brandsResult = await db.query<BrandRecord>(`
+        select * from public."Brand" where "isActive" = true order by "clicksCount" desc
+      `);
+      const paymentResult = await db.query<PaymentStatsRow>(`
+        select count(*)::int as "completedPayments", coalesce(sum(amount), 0) as "totalRevenue"
+        from public."Payment" where status = 'completed'
+      `);
 
-    const hourlyTraffic = [
-      { time: "00:00", visitors: 2800 },
-      { time: "02:00", visitors: 3400 },
-      { time: "04:00", visitors: 2900 },
-      { time: "06:00", visitors: 2700 },
-      { time: "08:00", visitors: 3100 },
-      { time: "10:00", visitors: 3800 },
-      { time: "12:00", visitors: 4200 },
-      { time: "14:00", visitors: 5800 },
-      { time: "16:00", visitors: 5100 },
-      { time: "18:00", visitors: 6900 },
-      { time: "20:00", visitors: 5600 },
-      { time: "22:00", visitors: 3800 },
-    ];
+      const brands = brandsResult.rows.map(normalizeBrand);
+      const totalClicks = brands.reduce((sum, brand) => sum + brand.clicksCount, 0);
+      const channelTotal = channelsResult.rows.reduce((sum, channel) => sum + channel.count, 0);
+      const channels = channelsResult.rows.map((channel) => ({
+        ...channel,
+        percentage: channelTotal ? Number(((channel.count / channelTotal) * 100).toFixed(1)) : 0,
+        color: CHANNEL_COLORS[channel.name] || "#71717a",
+      }));
+      const topViews = pagesResult.rows[0]?.views || 0;
+      const topPages = pagesResult.rows.map((page) => ({
+        ...page,
+        name: page.page === "/" ? "Home" : page.page,
+        pct: topViews ? Number(((page.views / topViews) * 100).toFixed(1)) : 0,
+      }));
+      const payments = paymentResult.rows[0] || { completedPayments: 0, totalRevenue: 0 };
 
-    const channels = [
-      { name: "Direct", percentage: 72, count: "57.4k", color: "#3b82f6" },
-      { name: "Organic Search", percentage: 14, count: "11.2k", color: "#10b981" },
-      { name: "Social (X, LinkedIn)", percentage: 9, count: "7.1k", color: "#8b5cf6" },
-      { name: "Referrals", percentage: 5, count: "4.0k", color: "#f59e0b" },
-    ];
-
-    const topPages = [
-      { page: "/", name: "Home (Main Canvas)", views: "74.2k", pct: 72 },
-      { page: "/category/developer-tools", name: "Developer Tools", views: "14.8k", pct: 14 },
-      { page: "/category/saas", name: "SaaS", views: "11.2k", pct: 11 },
-      { page: "/rules", name: "Rules & Guidelines", views: "6.4k", pct: 6 },
-      { page: "/checkout", name: "Claim Bento Checkout", views: "4.8k", pct: 5 },
-    ];
-
-    return NextResponse.json(
-      {
-        totalVisitors: baseVisitors,
-        visitorsLast24h: 75480,
-        liveOnline,
+      return NextResponse.json({
+        ...summary,
         totalClicks,
-        totalPool,
         totalBrands: brands.length,
-        avgSessionTime: "0m 58s",
-        bounceRate: "28%",
-        conversionRate: "16.4%",
-        hourlyTraffic,
+        totalRevenue: Number(payments.totalRevenue || 0),
+        completedPayments: payments.completedPayments,
+        clickThroughRate: summary.totalPageViews ? Number(((totalClicks / summary.totalPageViews) * 100).toFixed(2)) : 0,
+        purchaseConversionRate: summary.totalVisitors ? Number(((payments.completedPayments / summary.totalVisitors) * 100).toFixed(2)) : 0,
+        hourlyTraffic: hourlyResult.rows,
         channels,
         topPages,
         topBrands: brands.slice(0, 8),
-      },
-      {
-        headers: {
-          "Cache-Control": "no-store, no-cache, must-revalidate",
-        },
-      }
-    );
+      }, { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } });
     } catch (error) {
-      console.error("Error fetching stats:", error);
+      console.error("Error fetching real stats:", error);
       return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 });
     }
   });

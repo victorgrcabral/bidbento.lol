@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { PageViewTracker } from "@/components/PageViewTracker";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bidbento.lol"),
@@ -7,9 +8,12 @@ export const metadata: Metadata = {
   description:
     "Claim screen space and drive real traffic to your brand, software or SaaS in real-time on bidbento.lol.",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    shortcut: "/favicon-32.png",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: "bidbento.lol - Real-Time Screen Domination",
@@ -26,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="antialiased bg-[#050508] text-white selection:bg-violet-600 selection:text-white">
+        <PageViewTracker />
         {children}
       </body>
     </html>

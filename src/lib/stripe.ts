@@ -1,14 +1,25 @@
 import Stripe from "stripe";
 
-const stripeApiKey = process.env.STRIPE_SECRET_KEY || "sk_test_mock_key";
-
-export const stripe = new Stripe(stripeApiKey, {
-  apiVersion: "2024-11-20.acacia" as any,
-  typescript: true,
-});
+let stripeClient: Stripe | null = null;
 
 export const isStripeConfigured = Boolean(
-  process.env.STRIPE_SECRET_KEY &&
-    !process.env.STRIPE_SECRET_KEY.includes("mock") &&
-    process.env.STRIPE_SECRET_KEY.startsWith("sk_")
+  process.env.STRIPE_SECRET_KEY?.startsWith("sk_")
 );
+
+export function getStripe() {
+  const apiKey = process.env.STRIPE_SECRET_KEY;
+
+  if (!apiKey?.startsWith("sk_")) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+
+  stripeClient ??= new Stripe(apiKey, {
+    apiVersion: "2025-02-24.acacia",
+    typescript: true,
+    httpClient: Stripe.createFetchHttpClient(),
+    maxNetworkRetries: 0,
+    timeout: 10_000,
+  });
+
+  return stripeClient;
+}
