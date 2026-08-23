@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { withPrisma } from "@/lib/prisma";
 import { formatTimeAgo } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(request: NextRequest) {
-  try {
+  return withPrisma(async (prisma) => {
+    try {
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.max(1, parseInt(searchParams.get("limit") || "12", 10));
@@ -117,11 +118,12 @@ export async function GET(request: NextRequest) {
         "Expires": "0",
       },
     });
-  } catch (error) {
-    console.error("Error fetching spaces:", error);
-    return NextResponse.json(
-      { error: "Erro ao buscar dados dos espaços" },
-      { status: 500 }
-    );
-  }
+    } catch (error) {
+      console.error("Error fetching spaces:", error);
+      return NextResponse.json(
+        { error: "Erro ao buscar dados dos espaços" },
+        { status: 500 }
+      );
+    }
+  });
 }

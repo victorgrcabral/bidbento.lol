@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { withPrisma } from "@/lib/prisma";
 import { stripe, isStripeConfigured } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
-  try {
+  return withPrisma(async (prisma) => {
+    try {
     const body = await request.json();
     const { brandId, amount } = body;
 
@@ -85,11 +86,12 @@ export async function POST(request: NextRequest) {
       brand: updatedBrand,
       message: "Boost aplicado com sucesso!",
     });
-  } catch (error) {
-    console.error("Error applying boost:", error);
-    return NextResponse.json(
-      { error: "Erro ao processar boost de marca" },
-      { status: 500 }
-    );
-  }
+    } catch (error) {
+      console.error("Error applying boost:", error);
+      return NextResponse.json(
+        { error: "Erro ao processar boost de marca" },
+        { status: 500 }
+      );
+    }
+  });
 }

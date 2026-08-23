@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { withPrisma } from "@/lib/prisma";
 import { ensureUrlProtocol } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +9,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
+  return withPrisma(async (prisma) => {
+    try {
     const { id: brandId } = await params;
 
     if (!brandId) {
@@ -52,8 +53,9 @@ export async function GET(
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");
     return response;
-  } catch (error) {
-    console.error("Error logging click:", error);
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+    } catch (error) {
+      console.error("Error logging click:", error);
+      return NextResponse.redirect(new URL("/", request.url));
+    }
+  });
 }

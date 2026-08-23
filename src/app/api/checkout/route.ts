@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { withPrisma } from "@/lib/prisma";
 import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { normalizeDomain, ensureUrlProtocol, getFaviconUrl } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
-  try {
+  return withPrisma(async (prisma) => {
+    try {
     const body = await request.json();
     const { name, websiteUrl, logoUrl, tagline, category, color, amount } = body;
 
@@ -119,11 +120,12 @@ export async function POST(request: NextRequest) {
       brand,
       message: "Espaço adquirido com sucesso!",
     });
-  } catch (error) {
-    console.error("Error creating checkout:", error);
-    return NextResponse.json(
-      { error: "Erro ao processar compra de espaço" },
-      { status: 500 }
-    );
-  }
+    } catch (error) {
+      console.error("Error creating checkout:", error);
+      return NextResponse.json(
+        { error: "Erro ao processar compra de espaço" },
+        { status: 500 }
+      );
+    }
+  });
 }

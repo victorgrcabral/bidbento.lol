@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { withPrisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe";
 import { normalizeDomain, ensureUrlProtocol } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const signature = req.headers.get("stripe-signature");
+  return withPrisma(async (prisma) => {
+    const body = await req.text();
+    const signature = req.headers.get("stripe-signature");
 
   if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
     return NextResponse.json(
@@ -87,5 +88,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true });
+  });
 }
