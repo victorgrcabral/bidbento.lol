@@ -9,11 +9,11 @@ export const metadata: Metadata = {
     "Claim screen space and drive real traffic to your brand, software or SaaS in real-time on bidbento.lol.",
   icons: {
     icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.svg?v=2", type: "image/svg+xml" },
+      { url: "/favicon-32.png?v=2", sizes: "32x32", type: "image/png" },
     ],
-    shortcut: "/favicon-32.png",
-    apple: "/apple-touch-icon.png",
+    shortcut: "/favicon-32.png?v=2",
+    apple: "/apple-touch-icon.png?v=2",
   },
   openGraph: {
     title: "bidbento.lol - Real-Time Screen Domination",

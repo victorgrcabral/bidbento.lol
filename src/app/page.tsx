@@ -128,18 +128,22 @@ export default function HomePage() {
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-violet-600/15 blur-3xl pointer-events-none rounded-full" />
 
       {/* Top Header Navbar */}
-      <header className="absolute top-0 left-0 right-0 z-40 min-h-14 px-3 py-2 flex items-start gap-3 pointer-events-none">
+      <header className="absolute top-0 left-0 right-0 z-40 min-h-14 px-3 py-2 flex items-center gap-3 pointer-events-none">
         {/* Left Logo */}
-        <div className="pointer-events-auto shrink-0 hidden lg:block pt-1">
+        <button
+          type="button"
+          aria-label={language === "pt" ? "Mostrar todas as categorias" : language === "es" ? "Mostrar todas las categorías" : "Show all categories"}
+          onClick={() => {
+            setSelectedCategory("all");
+            setCurrentPage(1);
+          }}
+          className="pointer-events-auto flex h-11 shrink-0 items-center rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 active:scale-[0.98]"
+        >
           <BidBentoLogo
             withBadge={false}
             size="sm"
-            onClick={() => {
-              setSelectedCategory("all");
-              setCurrentPage(1);
-            }}
           />
-        </div>
+        </button>
 
         {/* Center Category Filter */}
         <div className="pointer-events-auto flex-1 min-w-0 max-w-6xl mx-auto">
@@ -155,7 +159,7 @@ export default function HomePage() {
       </header>
 
       {/* Main Screen Treemap Area with Vertical Swipe/Scroll Page Navigation */}
-      <div className="relative w-full flex-1 pt-16 pb-40 md:pb-20 overflow-hidden">
+      <div className="relative w-full flex-1 pt-16 pb-40 md:pt-20 md:pb-20 overflow-hidden">
         {isLoading && !data ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
             <div className="w-10 h-10 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />

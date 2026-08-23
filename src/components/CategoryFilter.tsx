@@ -72,19 +72,19 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   const visibleCategories = categoryMap.slice(0, visibleLimit + 1);
   const moreCategories = categoryMap.slice(visibleLimit + 1);
   const moreLabel = language === "pt" ? "Ver mais categorias" : language === "es" ? "Ver más categorías" : "More categories";
-  const buttonClass = (active: boolean) => `shrink-0 rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] focus:outline-none focus:ring-2 focus:ring-violet-400 active:scale-[0.98] ${active ? "bg-violet-600 text-white" : "text-zinc-400 hover:bg-white/5 hover:text-white"}`;
+  const buttonClass = (active: boolean) => `min-h-11 shrink-0 rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] focus:outline-none focus:ring-2 focus:ring-violet-400 active:scale-[0.98] ${active ? "bg-violet-600 text-white" : "text-zinc-400 hover:bg-white/5 hover:text-white"}`;
 
   return (
     <nav aria-label={t.categoryLabel} className="w-full pointer-events-auto">
       <select
         value={selectedCategory}
         onChange={(event) => onSelectCategory(event.target.value)}
-        className="md:hidden w-full rounded-xl border border-white/10 bg-zinc-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:ring-2 focus:ring-violet-500"
+        className="min-h-11 w-full rounded-xl border border-white/10 bg-zinc-950 px-4 py-2 text-sm font-semibold text-white outline-none focus:ring-2 focus:ring-violet-500 md:hidden"
       >
         {categoryMap.map((category) => <option key={category.key} value={category.key}>{category.label}</option>)}
       </select>
 
-      <div className="relative hidden md:flex h-11 items-center gap-1 rounded-full border border-white/10 bg-zinc-950/90 p-1 shadow-xl shadow-black/50 backdrop-blur-xl">
+      <div className="relative hidden min-h-14 items-center gap-1 rounded-full border border-white/10 bg-zinc-950/90 p-1 shadow-xl shadow-black/50 backdrop-blur-xl md:flex">
         {visibleCategories.map((category) => (
           <button key={category.key} type="button" onClick={() => onSelectCategory(category.key)} className={buttonClass(selectedCategory === category.key)}>
             <span className="flex items-center gap-1">
@@ -111,7 +111,7 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
                     key={category.key}
                     type="button"
                     onClick={() => { onSelectCategory(category.key); setIsMoreOpen(false); }}
-                    className={`rounded-lg px-3 py-2 text-left text-xs font-semibold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] focus:outline-none focus:ring-2 focus:ring-violet-400 active:scale-[0.98] ${selectedCategory === category.key ? "bg-violet-600 text-white" : "text-zinc-300 hover:bg-[#272727]"}`}
+                    className={`min-h-11 rounded-lg px-4 py-2 text-left text-sm font-semibold transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] focus:outline-none focus:ring-2 focus:ring-violet-400 active:scale-[0.98] ${selectedCategory === category.key ? "bg-violet-600 text-white" : "text-zinc-300 hover:bg-[#272727]"}`}
                   >
                     {category.label}
                   </button>
