@@ -3,7 +3,7 @@ import path from "node:path";
 import sharp from "sharp";
 
 const root = process.cwd();
-const imagePath = path.join(root, "public", "og", "bidbento-link-preview-v1.png");
+const imagePath = path.join(root, "public", "og", "bidbento-robot-link-preview-v2.jpg");
 const layoutPath = path.join(root, "src", "app", "layout.tsx");
 const [metadata, layout] = await Promise.all([
   sharp(imagePath).metadata(),
@@ -15,11 +15,12 @@ if (metadata.width !== 1200 || metadata.height !== 630) {
 }
 
 for (const required of [
-  "bidbento-link-preview-v1.png",
+  "bidbento-robot-link-preview-v2.jpg",
   'card: "summary_large_image"',
   'canonical: "/"',
   "width: 1200",
   "height: 630",
+  'type: "image/jpeg"',
 ]) {
   if (!layout.includes(required)) {
     throw new Error(`Missing social preview metadata: ${required}`);

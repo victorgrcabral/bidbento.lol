@@ -28,11 +28,11 @@ export const metadata: Metadata = {
       "Bid from $1. Every valid bid earns screen space proportional to its value.",
     images: [
       {
-        url: "/og/bidbento-link-preview-v1.png",
+        url: "/og/bidbento-robot-link-preview-v2.jpg",
         width: 1200,
         height: 630,
-        alt: "BidBento mascot beside a proportional screen allocation grid",
-        type: "image/png",
+        alt: "Animated BidBento robot mascot floating on a black background",
+        type: "image/jpeg",
       },
     ],
   },
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     title: "bidbento.lol — Proportional screen visibility",
     description:
       "Your bid does not need to be the biggest to claim a block worth noticing.",
-    images: ["/og/bidbento-link-preview-v1.png"],
+    images: ["/og/bidbento-robot-link-preview-v2.jpg"],
   },
 };
 
