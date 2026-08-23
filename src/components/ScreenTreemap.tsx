@@ -58,6 +58,15 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  useEffect(() => {
+    if (!selectedMobileBrand) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedMobileBrand(null);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [selectedMobileBrand]);
+
   // Handle touch swipe on mobile for page changes
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
@@ -208,7 +217,7 @@ export const ScreenTreemap: React.FC<ScreenTreemapProps> = ({
       <AnimatePresence>
         {selectedMobileBrand && isMobile && (
           <div
-            className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm"
+            className="fixed inset-0 z-[90] flex items-center justify-center overflow-hidden bg-black/85 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-sm"
             onClick={() => setSelectedMobileBrand(null)}
           >
             <BrandHoverCard

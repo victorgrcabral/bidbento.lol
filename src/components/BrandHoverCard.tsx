@@ -39,11 +39,14 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
       initial={{ opacity: 0, scale: 0.95, y: 8 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: 8 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-      className={`w-80 max-w-[90vw] max-h-[min(82vh,420px)] overflow-y-auto no-scrollbar bg-white/98 dark:bg-zinc-950/98 backdrop-blur-2xl border border-slate-200 dark:border-white/20 rounded-2xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.95)] text-slate-900 dark:text-white pointer-events-auto select-text ${
+      transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+      role={isMobileModal ? "dialog" : undefined}
+      aria-modal={isMobileModal ? true : undefined}
+      aria-labelledby={isMobileModal ? "mobile-brand-details-title" : undefined}
+      className={`overflow-y-auto no-scrollbar bg-white/98 dark:bg-zinc-950/98 backdrop-blur-2xl border border-slate-200 dark:border-white/20 rounded-2xl p-4 sm:p-5 shadow-[0_25px_60px_rgba(0,0,0,0.3)] dark:shadow-[0_25px_60px_rgba(0,0,0,0.95)] text-slate-900 dark:text-white pointer-events-auto select-text ${
         isMobileModal
-          ? "fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[90]"
-          : "z-[80]"
+          ? "relative z-[90] w-full max-w-sm max-h-[calc(100dvh-2rem)]"
+          : "z-[80] w-80 max-w-[90vw] max-h-[min(82vh,420px)]"
       }`}
       onClick={(e) => e.stopPropagation()}
     >
@@ -77,7 +80,10 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white leading-tight truncate group-hover/header:text-violet-600 dark:group-hover/header:text-violet-400 transition-colors">
+              <h3
+                id={isMobileModal ? "mobile-brand-details-title" : undefined}
+                className="font-bold text-base sm:text-lg text-slate-900 dark:text-white leading-tight truncate group-hover/header:text-violet-600 dark:group-hover/header:text-violet-400 transition-colors"
+              >
                 {brand.name}
               </h3>
               {brand.rank === 1 && (
@@ -95,7 +101,8 @@ export const BrandHoverCard: React.FC<BrandHoverCardProps> = ({
         {onClose && (
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shrink-0"
+            aria-label={language === "pt" ? "Fechar detalhes da marca" : language === "es" ? "Cerrar detalles de la marca" : "Close brand details"}
+            className="min-h-11 min-w-11 p-2 rounded-lg text-slate-400 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] focus:outline-none focus:ring-2 focus:ring-violet-400 active:scale-[0.98] shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
