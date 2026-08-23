@@ -78,7 +78,7 @@ export const BoostModal: React.FC<BoostModalProps> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           brandId: brand.id,
-          amount: calculation.enteredAmountUSD,
+          amount,
           currency,
           sessionId: getAnonymousSessionId(),
         }),

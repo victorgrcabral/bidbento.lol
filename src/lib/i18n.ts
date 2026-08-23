@@ -221,7 +221,7 @@ export const translations: Record<Language, TranslationDict> = {
     cardPreviewTitle: "Live Card Preview",
     projectedShare: "Projected Dominance:",
     instantActivation: "Instant Activation:",
-    instantActivationDesc: "Real-time activation via Stripe",
+    instantActivationDesc: "Activation after Stripe confirms the payment",
     requiredFieldsError: "Brand name and website URL are required.",
     minAmountError: "The minimum amount is $1.00 USD.",
 
@@ -357,7 +357,7 @@ export const translations: Record<Language, TranslationDict> = {
     cardPreviewTitle: "Vista Previa de tu Tarjeta",
     projectedShare: "Dominancia Proyectada:",
     instantActivation: "Activación Instantánea:",
-    instantActivationDesc: "En tiempo real vía Stripe",
+    instantActivationDesc: "Activación después de la confirmación de Stripe",
     requiredFieldsError: "El nombre y la URL del sitio son obligatorios.",
     minAmountError: "El monto mínimo es de $1.00 USD.",
 
@@ -493,7 +493,7 @@ export const translations: Record<Language, TranslationDict> = {
     cardPreviewTitle: "Pré-Visualização do seu Card",
     projectedShare: "Dominância Projetada:",
     instantActivation: "Ativação Instantânea:",
-    instantActivationDesc: "Em tempo real via Stripe",
+    instantActivationDesc: "Ativação após a confirmação da Stripe",
     requiredFieldsError: "Nome e URL do website são obrigatórios.",
     minAmountError: "O valor mínimo é de $1.00 USD.",
 

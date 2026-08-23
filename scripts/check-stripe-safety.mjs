@@ -14,5 +14,24 @@ if (!stripe.includes("createFetchHttpClient")) throw new Error("Stripe must use 
 if (!webhook.includes("constructEventAsync") || !webhook.includes("createSubtleCryptoProvider")) {
   throw new Error("Stripe webhook must use Web Crypto on Cloudflare Workers");
 }
+if (!checkout.includes('payment_method_types: ["card"]') || !boost.includes('payment_method_types: ["card"]')) {
+  throw new Error("Checkout and boost must accept card payments");
+}
+if (checkout.includes('currency: "usd"') || boost.includes('currency: "usd"')) {
+  throw new Error("Checkout is still charging every customer in USD");
+}
+if (!checkout.includes("normalizedAmountUsd") || !boost.includes("normalizedAmountUsd")) {
+  throw new Error("Checkout must preserve the normalized USD amount for ranking");
+}
+if (!webhook.includes("normalizedAmountUsd") || !webhook.includes("paidAmount")) {
+  throw new Error("Webhook must separate paid currency amount from normalized ranking amount");
+}
+if (checkout.includes('payment_method_types: ["boleto"]') || boost.includes('payment_method_types: ["boleto"]')) {
+  throw new Error("Boleto must not be enabled as a payment method");
+}
 
-console.log("Stripe safety OK: no unpaid fallback and webhook is idempotent");
+if (checkout.includes('"pix"') || boost.includes('"pix"') || checkout.includes('"boleto"') || boost.includes('"boleto"')) {
+  throw new Error("Pix and boleto must not be enabled");
+}
+
+console.log("Stripe safety OK: national cards in BRL, no Pix or boleto, paid fulfillment, normalized ranking, idempotent webhook");

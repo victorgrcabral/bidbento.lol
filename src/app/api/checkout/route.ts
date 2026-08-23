@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe, isStripeConfigured } from "@/lib/stripe";
+import {
+  fromMinorUnits,
+  isCurrencyCode,
+  normalizeAmountToUSD,
+  toMinorUnits,
+} from "@/lib/currency";
 import { normalizeDomain, ensureUrlProtocol, getFaviconUrl } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
@@ -13,11 +19,15 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, websiteUrl, logoUrl, tagline, category, color, amount, sessionId } = body;
-    const parsedAmount = Number.parseFloat(amount);
+    const currency = isCurrencyCode(body.currency) ? body.currency : "USD";
+    const parsedAmount = Number(amount);
+    const amountMinorUnits = toMinorUnits(parsedAmount);
+    const chargedAmount = fromMinorUnits(amountMinorUnits);
+    const normalizedAmountUsd = normalizeAmountToUSD(chargedAmount, currency);
 
-    if (!Number.isFinite(parsedAmount) || parsedAmount < 1) {
+    if (!Number.isFinite(parsedAmount) || !Number.isSafeInteger(amountMinorUnits) || !Number.isFinite(normalizedAmountUsd) || normalizedAmountUsd < 1) {
       return NextResponse.json(
-        { error: "O valor mínimo permitido é de $1.00 USD." },
+        { error: "O valor mínimo permitido equivale a $1.00 USD." },
         { status: 400 },
       );
     }
@@ -39,13 +49,13 @@ export async function POST(request: NextRequest) {
       line_items: [
         {
           price_data: {
-            currency: "usd",
+            currency: currency.toLowerCase(),
             product_data: {
               name: `Espaço no bidbento.lol para ${name.trim()}`,
               description: `Presença visual e tráfego direto para ${domain}`,
               images: finalLogo ? [finalLogo] : undefined,
             },
-            unit_amount: Math.round(parsedAmount * 100),
+            unit_amount: amountMinorUnits,
           },
           quantity: 1,
         },
@@ -61,6 +71,8 @@ export async function POST(request: NextRequest) {
         tagline: tagline?.trim() || "",
         category: category?.trim() || "SaaS",
         color: color || "#7c3aed",
+        normalizedAmountUsd: normalizedAmountUsd.toFixed(6),
+        paymentCurrency: currency.toLowerCase(),
         sessionId: typeof sessionId === "string" ? sessionId.slice(0, 80) : "",
       },
     });

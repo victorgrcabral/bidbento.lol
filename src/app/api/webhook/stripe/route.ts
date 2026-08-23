@@ -25,7 +25,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Assinatura Stripe inválida." }, { status: 400 });
   }
 
-  if (event.type !== "checkout.session.completed") return NextResponse.json({ received: true });
+  if (
+    event.type !== "checkout.session.completed" &&
+    event.type !== "checkout.session.async_payment_succeeded"
+  ) {
+    return NextResponse.json({ received: true });
+  }
   const session = event.data.object as Stripe.Checkout.Session;
   if (session.payment_status !== "paid" || !session.amount_total) return NextResponse.json({ received: true });
 
@@ -45,7 +50,16 @@ export async function POST(request: NextRequest) {
       const metadata = session.metadata || {};
       const domain = metadata.domain ? normalizeDomain(metadata.domain) : "";
       if (!domain) throw new Error("Stripe session is missing a valid domain");
-      const amount = session.amount_total! / 100;
+      const paidAmount = session.amount_total! / 100;
+      const normalizedAmountUsd = Number.parseFloat(metadata.normalizedAmountUsd || "");
+      const amountUsd = Number.isFinite(normalizedAmountUsd) && normalizedAmountUsd > 0
+        ? normalizedAmountUsd
+        : session.currency === "usd"
+          ? paidAmount
+          : Number.NaN;
+      if (!Number.isFinite(amountUsd) || amountUsd <= 0) {
+        throw new Error("Stripe session is missing a valid normalized USD amount");
+      }
       const brandResult = metadata.brandId
         ? await db.query<{ id: string }>(`select id from public."Brand" where id = $1 limit 1`, [metadata.brandId])
         : await db.query<{ id: string }>(`select id from public."Brand" where domain = $1 limit 1`, [domain]);
@@ -64,7 +78,7 @@ export async function POST(request: NextRequest) {
             color = coalesce(nullif($8, ''), color),
             "isActive" = true
           where id = $1`,
-          [brandId, amount, metadata.name || "", metadata.websiteUrl ? ensureUrlProtocol(metadata.websiteUrl) : "", metadata.logoUrl || "", metadata.tagline || "", metadata.category || "", metadata.color || ""],
+          [brandId, amountUsd, metadata.name || "", metadata.websiteUrl ? ensureUrlProtocol(metadata.websiteUrl) : "", metadata.logoUrl || "", metadata.tagline || "", metadata.category || "", metadata.color || ""],
         );
       } else {
         brandId = randomUUID();
@@ -72,14 +86,14 @@ export async function POST(request: NextRequest) {
           `insert into public."Brand"
             (id, name, domain, "websiteUrl", "logoUrl", tagline, category, color, "totalAmount", "clicksCount", "isActive", "createdAt", "updatedAt", "lastPaymentAt")
           values ($1,$2,$3,$4,$5,$6,$7,$8,$9,0,true,now(),now(),now())`,
-          [brandId, metadata.name || domain, domain, ensureUrlProtocol(metadata.websiteUrl || domain), metadata.logoUrl || null, metadata.tagline || null, metadata.category || "SaaS", metadata.color || "#7c3aed", amount],
+          [brandId, metadata.name || domain, domain, ensureUrlProtocol(metadata.websiteUrl || domain), metadata.logoUrl || null, metadata.tagline || null, metadata.category || "SaaS", metadata.color || "#7c3aed", amountUsd],
         );
       }
 
       await db.query(
         `insert into public."Payment" (id, "brandId", amount, currency, "stripeSessionId", "sessionId", status, "createdAt")
          values ($1,$2,$3,$4,$5,$6,'completed',now())`,
-        [randomUUID(), brandId, amount, session.currency || "usd", session.id, metadata.sessionId || null],
+        [randomUUID(), brandId, paidAmount, session.currency || "usd", session.id, metadata.sessionId || null],
       );
       await db.query("commit");
       return NextResponse.json({ received: true });

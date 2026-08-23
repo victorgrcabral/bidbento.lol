@@ -234,7 +234,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           tagline: tagline.trim() || undefined,
           category,
           color,
-          amount: calculation.enteredAmountUSD,
+          amount: calculation.enteredAmountRaw,
           currency,
           sessionId: getAnonymousSessionId(),
         }),

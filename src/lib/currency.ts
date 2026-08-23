@@ -28,6 +28,22 @@ export const SUPPORTED_CURRENCIES: Record<CurrencyCode, CurrencyRate> = {
   },
 };
 
+export function isCurrencyCode(value: unknown): value is CurrencyCode {
+  return value === "USD" || value === "EUR" || value === "BRL";
+}
+
+export function normalizeAmountToUSD(amount: number, currency: CurrencyCode): number {
+  return amount / SUPPORTED_CURRENCIES[currency].rateAgainstUSD;
+}
+
+export function toMinorUnits(amount: number): number {
+  return Math.round(amount * 100);
+}
+
+export function fromMinorUnits(amount: number): number {
+  return amount / 100;
+}
+
 export function formatCurrency(
   amountInUSD: number,
   currency: CurrencyCode = "USD"

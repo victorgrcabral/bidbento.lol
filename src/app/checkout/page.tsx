@@ -151,6 +151,7 @@ export default function CheckoutPage() {
       simulatedList.findIndex((item) => item.totalAmount === finalBrandAmountUSD) + 1;
 
     return {
+      enteredAmountRaw: rawVal,
       enteredAmountUSD,
       finalBrandAmountUSD,
       newTotalPoolUSD,
@@ -229,7 +230,7 @@ export default function CheckoutPage() {
           tagline: tagline.trim() || undefined,
           category,
           color,
-          amount: calculation.enteredAmountUSD,
+          amount: calculation.enteredAmountRaw,
           currency,
           sessionId: getAnonymousSessionId(),
         }),

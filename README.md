@@ -234,6 +234,8 @@ In the **Stripe Dashboard** (Developers ➔ Webhooks):
 - **Endpoint URL:** `https://bidbento.lol/api/webhook/stripe`
 - **Events to send:** `checkout.session.completed`
 
+In **Settings ➔ Payment methods**, enable **Cards**. BRL Checkout Sessions charge in reais and accept cards; Pix and boleto are not included by the application.
+
 ---
 
 ## 📦 Available Scripts
