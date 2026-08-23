@@ -23,7 +23,8 @@
     "test:payment-currency": "node --experimental-strip-types scripts/check-payment-currency.mjs",
     "test:mobile-ux": "node scripts/check-mobile-ux.mjs",
     "test:image-url": "node scripts/check-image-url-only.mjs",
-    "test:favicons": "node scripts/check-favicon-assets.mjs"
+    "test:favicons": "node scripts/check-favicon-assets.mjs",
+    "test:social-preview": "node scripts/check-social-preview.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.9.1",
