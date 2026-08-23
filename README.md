@@ -1,7 +1,10 @@
 <div align="center">
   <img src="public/logo.png" alt="bidbento.lol logo" width="380" />
   <br />
+
+  <img src="public/github/bidbento-mascot.svg" alt="BidBento mascot scanning for an open category" width="240" />
   <br />
+  <sub><code>mascot.status = "scouting unclaimed categories"</code></sub>
 
   <h1>🍱 bidbento.lol</h1>
   <p><strong>The Real-Time Visual Screen Domination & Advertising Engine</strong></p>
