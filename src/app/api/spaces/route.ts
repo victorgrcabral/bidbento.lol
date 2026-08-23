@@ -29,6 +29,14 @@ export async function GET(request: NextRequest) {
       const totalGlobalAmount = allActiveBrands.reduce((sum, brand) => sum + brand.totalAmount, 0);
       const totalClicks = allActiveBrands.reduce((sum, brand) => sum + brand.clicksCount, 0);
       const availableCategories = Array.from(new Set(allActiveBrands.map((brand) => brand.category).filter(Boolean)));
+      const categoryTotalMap = new Map<string, number>();
+      for (const brand of allActiveBrands) {
+        categoryTotalMap.set(brand.category, (categoryTotalMap.get(brand.category) || 0) + brand.totalAmount);
+      }
+      const categoryTotals = Array.from(categoryTotalMap, ([categoryName, totalAmount]) => ({
+        category: categoryName,
+        totalAmount,
+      })).sort((first, second) => second.totalAmount - first.totalAmount || first.category.localeCompare(second.category));
       const totalPages = Math.max(1, Math.ceil(filteredBrands.length / limit));
       const safePage = Math.min(page, totalPages);
       const startIndex = (safePage - 1) * limit;
@@ -72,6 +80,7 @@ export async function GET(request: NextRequest) {
           limit,
           category,
           availableCategories,
+          categoryTotals,
           leader,
           lastBid: lastPayment
             ? {

@@ -40,6 +40,10 @@ export interface SpacesResponse {
   limit: number;
   category: string;
   availableCategories: string[];
+  categoryTotals: {
+    category: string;
+    totalAmount: number;
+  }[];
   leader: BrandSpace | null;
   lastBid: {
     brandName: string;
