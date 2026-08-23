@@ -121,7 +121,7 @@ export const BottomConversionBar: React.FC<BottomConversionBarProps> = ({
       <div className="pointer-events-auto w-full max-w-6xl rounded-2xl border border-white/15 bg-zinc-950/90 p-2 shadow-2xl shadow-black/90 backdrop-blur-2xl transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] md:flex md:items-center md:justify-between md:gap-3 md:rounded-full md:px-5 md:py-3">
         {/* Mobile: message, language and pagination */}
         <div className="flex min-w-0 items-center gap-2 md:hidden">
-          <div className="min-w-0 flex-1 overflow-hidden">{message}</div>
+          <div className="flex min-h-8 min-w-0 flex-1 items-center overflow-hidden">{message}</div>
           {pagination}
           <LanguageToggle
             language={language}

@@ -88,7 +88,7 @@ export const EmptyCategoryPlaceholder: React.FC<EmptyCategoryPlaceholderProps> =
           height={270}
           priority
           unoptimized
-          className="h-auto w-80 max-w-full drop-shadow-2xl sm:w-96"
+          className="h-auto w-56 max-w-full drop-shadow-2xl sm:w-80 [@media(max-height:700px)]:w-40"
         />
       </div>
 
