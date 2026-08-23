@@ -68,14 +68,13 @@ export interface TranslationDict {
   taglineLabel: string;
   taglinePlaceholder: string;
   logoLabel: string;
-  chooseFile: string;
-  orLogoUrl: string;
+  logoUrlPlaceholder: string;
+  logoUrlHelp: string;
   brandColorLabel: string;
   customColorToggle: string;
   paletteToggle: string;
   payAndClaim: (amount: string) => string;
   processing: string;
-  uploadingImage: string;
   cardPreviewTitle: string;
   projectedShare: string;
   instantActivation: string;
@@ -209,15 +208,14 @@ export const translations: Record<Language, TranslationDict> = {
     categoryLabel: "Category / Sector *",
     taglineLabel: "Short Tagline / Slogan",
     taglinePlaceholder: "e.g. The modern database for Next.js",
-    logoLabel: "Logo (File Upload or URL)",
-    chooseFile: "Choose image (PNG, JPEG, SVG...)",
-    orLogoUrl: "Or paste direct image URL...",
+    logoLabel: "Logo image URL (optional)",
+    logoUrlPlaceholder: "https://yourbrand.com/logo.png",
+    logoUrlHelp: "Leave blank to use the website favicon automatically.",
     brandColorLabel: "Brand Highlight Color",
     customColorToggle: "Custom Color (HEX/RGB/CMYK)",
     paletteToggle: "Use Preset Palette",
     payAndClaim: (amount) => `Claim your Bento for ${amount}`,
     processing: "Processing...",
-    uploadingImage: "Uploading image...",
     cardPreviewTitle: "Live Card Preview",
     projectedShare: "Projected Dominance:",
     instantActivation: "Instant Activation:",
@@ -345,15 +343,14 @@ export const translations: Record<Language, TranslationDict> = {
     categoryLabel: "Sector / Categoría *",
     taglineLabel: "Eslogan Corto / Descripción",
     taglinePlaceholder: "Ej: La mejor base de datos para Next.js",
-    logoLabel: "Logotipo (Subir archivo o URL)",
-    chooseFile: "Elegir archivo (PNG, JPEG, SVG...)",
-    orLogoUrl: "O pega la URL directa...",
+    logoLabel: "URL de la imagen del logotipo (opcional)",
+    logoUrlPlaceholder: "https://tumarca.com/logo.png",
+    logoUrlHelp: "Déjalo vacío para usar automáticamente el favicon del sitio.",
     brandColorLabel: "Color de Destaque de la Marca",
     customColorToggle: "Color Personalizado (HEX/RGB/CMYK)",
     paletteToggle: "Usar Paleta Predeterminada",
     payAndClaim: (amount) => `Reclamar tu Bento por ${amount}`,
     processing: "Procesando...",
-    uploadingImage: "Subiendo imagen...",
     cardPreviewTitle: "Vista Previa de tu Tarjeta",
     projectedShare: "Dominancia Proyectada:",
     instantActivation: "Activación Instantánea:",
@@ -481,15 +478,14 @@ export const translations: Record<Language, TranslationDict> = {
     categoryLabel: "Setor / Categoria *",
     taglineLabel: "Slogan / Descrição Curta",
     taglinePlaceholder: "Ex: O melhor banco de dados para Next.js",
-    logoLabel: "Logotipo da Marca (Upload ou URL)",
-    chooseFile: "Escolher arquivo (PNG, JPEG, SVG...)",
-    orLogoUrl: "Ou cole a URL direta...",
+    logoLabel: "URL da imagem do logotipo (opcional)",
+    logoUrlPlaceholder: "https://meusaas.com/logo.png",
+    logoUrlHelp: "Deixe vazio para usar automaticamente o favicon do site.",
     brandColorLabel: "Cor de Destaque da Marca",
     customColorToggle: "Cor Personalizada (HEX/RGB/CMYK)",
     paletteToggle: "Usar Paleta Padrão",
     payAndClaim: (amount) => `Reivindicar seu Bento por ${amount}`,
     processing: "Processando...",
-    uploadingImage: "Enviando imagem...",
     cardPreviewTitle: "Pré-Visualização do seu Card",
     projectedShare: "Dominância Projetada:",
     instantActivation: "Ativação Instantânea:",

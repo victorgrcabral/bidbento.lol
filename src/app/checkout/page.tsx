@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency, SUPPORTED_CURRENCIES } from "@/lib/currency";
@@ -16,8 +16,6 @@ import {
   Zap,
   TrendingUp,
   Globe,
-  Upload,
-  Check,
   AlertCircle,
   Loader2,
   ChevronLeft,
@@ -89,8 +87,6 @@ export default function CheckoutPage() {
   const [name, setName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadedFilePreview, setUploadedFilePreview] = useState<string | null>(null);
   const [tagline, setTagline] = useState("");
   const [category, setCategory] = useState("SaaS");
   const [color, setColor] = useState("#7c3aed");
@@ -101,8 +97,6 @@ export default function CheckoutPage() {
   const [existingBrands, setExistingBrands] = useState<BrandSpace[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setAmount(presets[2] || 30);
@@ -169,21 +163,6 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage("Image must be under 5MB.");
-      return;
-    }
-
-    setUploadedFile(file);
-    const previewUrl = URL.createObjectURL(file);
-    setUploadedFilePreview(previewUrl);
-    setLogoUrl("");
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -200,25 +179,7 @@ export default function CheckoutPage() {
 
     try {
       setIsSubmitting(true);
-      let finalLogoUrl = logoUrl.trim();
-
-      if (uploadedFile) {
-        const formData = new FormData();
-        formData.append("file", uploadedFile);
-
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!uploadRes.ok) {
-          const err = await uploadRes.json();
-          throw new Error(err.error || "Failed to upload image.");
-        }
-
-        const uploadData = await uploadRes.json();
-        finalLogoUrl = uploadData.url;
-      }
+      const finalLogoUrl = logoUrl.trim();
 
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -404,40 +365,19 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Logo Upload & Custom Color */}
+              {/* Optional external logo URL */}
               <div>
                 <label className="block text-xs font-semibold text-zinc-300 mb-1.5">
                   {t.logoLabel}
                 </label>
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 px-4 py-2.5 rounded-xl text-xs font-semibold shrink-0 cursor-pointer"
-                  >
-                    <Upload className="w-3.5 h-3.5 text-violet-400" />
-                    <span>{uploadedFile ? uploadedFile.name : t.chooseFile}</span>
-                  </button>
-
-                  <input
-                    type="url"
-                    placeholder={t.orLogoUrl}
-                    value={logoUrl}
-                    onChange={(e) => {
-                      setLogoUrl(e.target.value);
-                      setUploadedFile(null);
-                      setUploadedFilePreview(null);
-                    }}
-                    className="flex-1 bg-zinc-900/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs sm:text-sm"
-                  />
-                </div>
+                <input
+                  type="url"
+                  placeholder={t.logoUrlPlaceholder}
+                  value={logoUrl}
+                  onChange={(e) => setLogoUrl(e.target.value)}
+                  className="w-full bg-zinc-900/90 border border-white/10 rounded-xl px-3.5 py-2.5 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs sm:text-sm"
+                />
+                <p className="mt-1 text-xs text-zinc-500 text-pretty">{t.logoUrlHelp}</p>
               </div>
 
               {/* Color Selection */}
@@ -553,7 +493,6 @@ export default function CheckoutPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={
-                      uploadedFilePreview ||
                       logoUrl ||
                       (detectedDomain ? getFaviconUrl(detectedDomain) : "/logo.png")
                     }

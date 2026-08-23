@@ -6,7 +6,7 @@ import {
   normalizeAmountToUSD,
   toMinorUnits,
 } from "@/lib/currency";
-import { normalizeDomain, ensureUrlProtocol, getFaviconUrl } from "@/lib/utils";
+import { normalizeDomain, ensureUrlProtocol, getFaviconUrl, isValidHttpUrl } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   if (!isStripeConfigured) {
@@ -42,7 +42,14 @@ export async function POST(request: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://bidbento.lol";
     const domain = normalizeDomain(websiteUrl);
     const formattedUrl = ensureUrlProtocol(websiteUrl);
-    const finalLogo = logoUrl?.trim() || getFaviconUrl(domain);
+    const customLogoUrl = typeof logoUrl === "string" ? logoUrl.trim() : "";
+    if (customLogoUrl && !isValidHttpUrl(customLogoUrl)) {
+      return NextResponse.json(
+        { error: "A URL da imagem deve começar com http:// ou https://." },
+        { status: 400 },
+      );
+    }
+    const finalLogo = customLogoUrl || getFaviconUrl(domain);
     const stripe = getStripe();
     const checkoutSession = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],

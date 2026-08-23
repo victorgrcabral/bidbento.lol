@@ -38,6 +38,18 @@ export function ensureUrlProtocol(rawUrl: string): string {
 }
 
 /**
+ * Accepts only public HTTP(S) URLs for externally hosted brand images.
+ */
+export function isValidHttpUrl(rawUrl: string): boolean {
+  try {
+    const url = new URL(rawUrl.trim());
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Formats relative time (English, Spanish, Portuguese)
  */
 export function formatTimeAgo(

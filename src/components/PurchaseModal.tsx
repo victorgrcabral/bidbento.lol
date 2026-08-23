@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { BrandSpace } from "@/types";
 import { CurrencyCode, formatCurrency, SUPPORTED_CURRENCIES } from "@/lib/currency";
 import { normalizeDomain, getFaviconUrl } from "@/lib/utils";
@@ -13,8 +13,6 @@ import {
   Zap,
   TrendingUp,
   Globe,
-  Upload,
-  Check,
   AlertCircle,
   Loader2,
   Image as ImageIcon,
@@ -75,8 +73,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   const [name, setName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadedFilePreview, setUploadedFilePreview] = useState<string | null>(null);
   const [tagline, setTagline] = useState("");
   const [category, setCategory] = useState("SaaS");
 
@@ -100,10 +96,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
   }, [currency, activePresets]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-detect existing brand by domain
   const detectedDomain = useMemo(() => {
@@ -172,21 +165,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMessage("Image must be under 5MB.");
-      return;
-    }
-
-    setUploadedFile(file);
-    const previewUrl = URL.createObjectURL(file);
-    setUploadedFilePreview(previewUrl);
-    setLogoUrl("");
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
@@ -203,26 +181,7 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
 
     try {
       setIsSubmitting(true);
-      let finalLogoUrl = logoUrl.trim();
-
-      if (uploadedFile) {
-        setIsUploading(true);
-        const formData = new FormData();
-        formData.append("file", uploadedFile);
-
-        const uploadRes = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!uploadRes.ok) {
-          const err = await uploadRes.json();
-          throw new Error(err.error || "Image upload failed.");
-        }
-
-        const uploadData = await uploadRes.json();
-        finalLogoUrl = uploadData.url;
-      }
+      const finalLogoUrl = logoUrl.trim();
 
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -253,7 +212,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
       setErrorMessage(err.message || "An error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
-      setIsUploading(false);
     }
   };
 
@@ -435,55 +393,35 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
             </div>
           </div>
 
-          {/* Logo Upload & URL */}
+          {/* Optional external logo URL */}
           <div>
             <label className="block text-zinc-300 font-semibold mb-1 flex items-center gap-1.5">
               <ImageIcon className="w-3.5 h-3.5 text-violet-400" /> {t.logoLabel}
             </label>
             <div className="flex gap-2 items-center">
               <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 border border-white/10 text-zinc-300 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 cursor-pointer"
-              >
-                <Upload className="w-3.5 h-3.5 text-violet-400" />
-                <span>{uploadedFile ? uploadedFile.name : t.chooseFile}</span>
-              </button>
-
-              <input
                 type="url"
-                placeholder={t.orLogoUrl}
+                placeholder={t.logoUrlPlaceholder}
                 value={logoUrl}
-                onChange={(e) => {
-                  setLogoUrl(e.target.value);
-                  setUploadedFile(null);
-                  setUploadedFilePreview(null);
-                }}
+                onChange={(e) => setLogoUrl(e.target.value)}
                 className="flex-1 bg-zinc-900/90 border border-white/10 rounded-xl px-3 py-2 text-white placeholder-zinc-500 focus:outline-none focus:border-violet-500 text-xs"
               />
 
-              {(uploadedFilePreview || logoUrl || detectedDomain) && (
+              {(logoUrl || detectedDomain) && (
                 <div className="w-9 h-9 rounded-xl bg-zinc-900 border border-white/10 p-1 flex items-center justify-center shrink-0 overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={
-                      uploadedFilePreview ||
-                      logoUrl ||
-                      getFaviconUrl(detectedDomain || "google.com")
-                    }
+                    src={logoUrl || getFaviconUrl(detectedDomain || "google.com")}
                     alt="Logo preview"
                     className="w-full h-full object-contain"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = getFaviconUrl(detectedDomain || websiteUrl);
+                    }}
                   />
                 </div>
               )}
             </div>
+            <p className="mt-1 text-xs text-zinc-500 text-pretty">{t.logoUrlHelp}</p>
           </div>
 
           {/* Brand Highlight Color */}
@@ -559,7 +497,6 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={
-                    uploadedFilePreview ||
                     logoUrl ||
                     (detectedDomain ? getFaviconUrl(detectedDomain) : "/logo.png")
                   }
@@ -602,15 +539,13 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={isSubmitting || isUploading}
+            disabled={isSubmitting}
             className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-violet-600/40 border border-violet-400/40 transition-all flex items-center justify-center gap-2 disabled:opacity-50 active:scale-98 cursor-pointer mt-4"
           >
-            {isSubmitting || isUploading ? (
+            {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>
-                  {isUploading ? t.uploadingImage : t.processing}
-                </span>
+                <span>{t.processing}</span>
               </>
             ) : (
               <>
